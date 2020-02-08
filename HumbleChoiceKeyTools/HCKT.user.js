@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Humble Choice Key Tools
-// @description  Display Humble Choice region restriction infomation, and select game without reveal it's key.
-// @author       sffxzzp
 // @namespace    https://github.com/sffxzzp
 // @version      0.01
+// @description  Display Humble Choice region restriction infomation, and select game without reveal it's key.
+// @author       sffxzzp
+// @match        *://www.humblebundle.com/subscription/*
 // @icon         https://humblebundle-a.akamaihd.net/static/hashed/46cf2ed85a0641bfdc052121786440c70da77d75.png
-// @include      *://www.humblebundle.com/subscription/*
 // @grant        GM_xmlhttpRequest
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/HumbleChoiceKeyTools/HCKT.user.js
 // ==/UserScript==
 
 (function () {
