@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Humble Choice Key Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.02
+// @version      0.03
 // @description  Display Humble Choice region restriction infomation, and select game without reveal it's key.
 // @author       sffxzzp
 // @match        *://www.humblebundle.com/subscription/*
@@ -363,7 +363,7 @@
                     selName: order[i]
                 };
             }
-            var outputHTML = '<h3 class="content-choices-title">锁区信息</h3>';
+            var outputHTML = `<h3 class="content-choices-title">锁区信息<a style="font-weight: initial; font-size: 16px; float: right; color: #169fe3;" href="https://www.humblebundle.com/downloads?key=${gameKey}">进入 download 页</a></h3>`;
             for (var j=0;j<content.length;j++) {
                 var out = `<span style="color: #169fe3;">${content[j].title}</span>`;
                 if (choosed.indexOf(content[j].selName) < 0) {
@@ -399,11 +399,17 @@
                     var _node = this;
                     _node.onclick = function () {}
                     _node.innerHTML = '请稍等…'
-                    util.xhr({url: _node.getAttribute('link'), xhr: true}).then(function () {
-                        alert('成功！');
-                        _node.innerHTML = '已选择过';
-                        _node.setAttribute('style', 'float: right; color: #f18d22; margin-left: 20px;');
-                    }).catch(console.log);
+                    util.xhr({url: _node.getAttribute('link'), xhr: true}).then(function (result) {
+                        if (result.success) {
+                            alert('成功！');
+                            _node.innerHTML = '已选择过';
+                            _node.setAttribute('style', 'float: right; color: #f18d22; margin-left: 20px;');
+                        }
+                        else {
+                            alert('失败！请刷新页面重试！');
+                            _node.innerHTML = '请求失败';
+                        }
+                    });
                 }
             });
         };
