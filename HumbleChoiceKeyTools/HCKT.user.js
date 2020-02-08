@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Humble Choice Key Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
+// @version      0.02
 // @description  Display Humble Choice region restriction infomation, and select game without reveal it's key.
 // @author       sffxzzp
 // @match        *://www.humblebundle.com/subscription/*
@@ -344,7 +344,10 @@
         function hckt() {};
         hckt.prototype.showInfo = function (info) {
             info = info.contentChoiceOptions;
-            var choosed = info.contentChoicesMade.initial.choices_made;
+            var choosed = []
+            if (info.contentChoicesMade) {
+                choosed = info.contentChoicesMade.initial.choices_made;
+            }
             var gameKey = info.gamekey;
             info = info.contentChoiceData.initial;
             var order = info.display_order;
@@ -400,7 +403,7 @@
                         alert('成功！');
                         _node.innerHTML = '已选择过';
                         _node.setAttribute('style', 'float: right; color: #f18d22; margin-left: 20px;');
-                    });
+                    }).catch(console.log);
                 }
             });
         };
@@ -411,7 +414,13 @@
                 xhr: true
             }).then(function (result) {
                 var rInfo = (new DOMParser()).parseFromString(result.body, "text/html");
-                rInfo = JSON.parse(rInfo.querySelector('#webpack-monthly-product-data').innerHTML);
+                if (rInfo.querySelector('#webpack-monthly-product-data') == null) {
+                    rInfo = rInfo.querySelector('#webpack-subscriber-hub-data');
+                }
+                else {
+                    rInfo = rInfo.querySelector('#webpack-monthly-product-data');
+                }
+                rInfo = JSON.parse(rInfo.innerHTML);
                 _this.showInfo(rInfo);
             }).catch(console.log);
         };
