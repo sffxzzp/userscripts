@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Humble Choice Key Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.03
-// @description  Display Humble Choice region restriction infomation, and select game without reveal it's key.
+// @version      0.05
+// @description  Display Humble Choice region restriction infomation, and select game without reveal it's key, and reveal all selected keys.
 // @author       sffxzzp
 // @match        *://www.humblebundle.com/subscription/*
 // @icon         https://humblebundle-a.akamaihd.net/static/hashed/46cf2ed85a0641bfdc052121786440c70da77d75.png
@@ -62,7 +62,7 @@
             CK: '库克群岛',
             CL: '智利',
             CM: '喀麦隆',
-            CN: '中国',
+            CN: '<b style="color: gold; font-size: 16px;">中国</b>',
             CO: '哥伦比亚',
             CR: '哥斯达黎加',
             CS: '塞尔维亚和黑山',
@@ -110,7 +110,7 @@
             GU: '关岛',
             GW: '几内亚比绍',
             GY: '圭亚那',
-            HK: '香港',
+            HK: '<b style="color: gold; font-size: 16px;">香港</b>',
             HM: '赫德岛和麦克唐纳群岛',
             HN: '洪都拉斯',
             HR: '克罗地亚',
@@ -163,7 +163,7 @@
             ML: '马里',
             MM: '缅甸',
             MN: '蒙古',
-            MO: '澳门',
+            MO: '<b style="color: gold; font-size: 16px;">澳门</b>',
             MP: '北马里亚纳群岛',
             MQ: '马提尼克',
             MR: '毛里塔尼亚',
@@ -243,7 +243,7 @@
             TR: '土耳其',
             TT: '特立尼达和多巴哥',
             TV: '图瓦卢',
-            TW: '台湾',
+            TW: '<b style="color: gold; font-size: 16px;">台湾</b>',
             TZ: '坦桑尼亚',
             UA: '乌克兰',
             UG: '乌干达',
@@ -342,7 +342,21 @@
     })();
     var hckt = (function () {
         function hckt() {};
+        hckt.prototype.getKey = function (textarea, title, data) {
+            util.xhr({
+                url: 'https://www.humblebundle.com/humbler/redeemkey',
+                method: 'post',
+                data: data,
+                xhr: true
+            }).then(function (result) {
+                var res = JSON.parse(result.body);
+                if (res.success) {
+                    textarea.value += `${title}    ${res.key}\n`;
+                }
+            });
+        };
         hckt.prototype.showInfo = function (info) {
+            var __this = this;
             info = info.contentChoiceOptions;
             var choosed = []
             if (info.contentChoicesMade) {
@@ -360,14 +374,36 @@
                     disallow: rInfo.tpkds[0].disallowed_countries,
                     rawName: rInfo.tpkds[0].machine_name,
                     appid: rInfo.tpkds[0].steam_app_id,
+                    revealed: 'is_gift' in rInfo.tpkds[0],
                     selName: order[i]
                 };
             }
-            var outputHTML = `<h3 class="content-choices-title">锁区信息<a style="font-weight: initial; font-size: 16px; float: right; color: #169fe3;" href="https://www.humblebundle.com/downloads?key=${gameKey}">进入 download 页</a></h3>`;
+            var out;
+            var outputHTML = `<h3 class="content-choices-title">刮 Key 区<a style="padding-left: 20px; font-weight: initial; font-size: 16px; float: right; color: #169fe3;" href="" id="hckt_revealAll" onclick="return false;">刮开已选</a></h3><textarea id="hckt_revealArea" style="padding: 10px; width: calc(100% - 20px); min-height: 310px; background-color: #363c49; border: none; border-radius: 5px;">`;
+            outputHTML += `点击右上角「刮开已选」会一键刮开所有已选择的游戏 Key，并在此显示。\n以下为已经选择的游戏（将会被刮开）：\n`;
+            var selected = {'name': [], 'id': []};
+            var revealed = {'name': [], 'id': []};
+            for (var k=0;k<content.length;k++) {
+                if (choosed.indexOf(content[k].selName) >= 0) {
+                    if (content[k].revealed) {
+                        revealed.name.push(content[k].title);
+                        revealed.id.push(content[k].selName);
+                    }
+                    else {
+                        selected.name.push(content[k].title);
+                        selected.id.push(content[k].selName);
+                    }
+                }
+            }
+            outputHTML += selected.name.join('\n');
+            outputHTML += `\n以下为已经刮开的游戏：\n`;
+            outputHTML += revealed.name.join('\n');
+            outputHTML += `</textarea>`;
+            outputHTML += `<h3 class="content-choices-title">锁区信息<a id="hckt_showhide" style="padding-left: 20px; font-weight: initial; font-size: 16px; float: right; color: #169fe3;" href="" onclick="return false;">展开/折叠</a><a style="font-weight: initial; font-size: 16px; float: right; color: #169fe3;" href="https://www.humblebundle.com/downloads?key=${gameKey}">进入 download 页</a></h3><div id="hckt_keyInfo" class="hckt_show">`;
             for (var j=0;j<content.length;j++) {
-                var out = `<span style="color: #169fe3;">${content[j].title}</span>`;
+                out = `<span style="color: #169fe3;">${content[j].title}</span>`;
                 if (choosed.indexOf(content[j].selName) < 0) {
-                    out += `<a class="hckt_select" style="float: right; color: #169fe3; margin-left: 20px;" href="javascript:;" link="https://www.humblebundle.com/humbler/choosecontent?gamekey=${gameKey}&parent_identifier=initial&chosen_identifier=${content[j].selName}" target="_blank">只选不刮</a>`
+                    out += `<a class="hckt_select" style="float: right; color: #169fe3; margin-left: 20px;" href="" link="https://www.humblebundle.com/humbler/choosecontent?gamekey=${gameKey}&parent_identifier=initial&chosen_identifier=${content[j].selName}" target="_blank">只选不刮</a>`
                 }
                 else {
                     out += `<a style="float: right; color: #f18d22; margin-left: 20px;" href="javascript:;">已选择过</a>`;
@@ -387,9 +423,10 @@
                         out += `<span style="color: #f18d22; font-size: 14px;">不能在以下地区激活：${common.getCountryByCode(content[j].disallow)}</span><br />`;
                     }
                 }
-                out += '<br />'
+                out += `<br />`;
                 outputHTML += out;
             }
+            outputHTML += `</div>`;
             var targetNode = document.querySelector('.content-choices-view');
             var targetPos = document.querySelector('.content-choice-tiles');
             var insertInfo = util.createElement({node: "div", content: {style: "background-color: #454c5e; padding: 0.25em 1.5em;"}, html: outputHTML});
@@ -397,21 +434,48 @@
             document.querySelectorAll('.hckt_select').forEach(function (node) {
                 node.onclick = function () {
                     var _node = this;
-                    _node.onclick = function () {}
+                    _node.onclick = function () {return false;}
                     _node.innerHTML = '请稍等…'
                     util.xhr({url: _node.getAttribute('link'), xhr: true}).then(function (result) {
                         if (result.success) {
-                            alert('成功！');
                             _node.innerHTML = '已选择过';
                             _node.setAttribute('style', 'float: right; color: #f18d22; margin-left: 20px;');
                         }
                         else {
-                            alert('失败！请刷新页面重试！');
                             _node.innerHTML = '请求失败';
                         }
                     });
+                    return false;
                 }
             });
+            document.querySelector('#hckt_showhide').onclick = function () {
+                var keyInfo = document.querySelector('#hckt_keyInfo');
+                var show = keyInfo.classList.contains('hckt_show');
+                if (show) {
+                    keyInfo.setAttribute('class', 'hckt_hide');
+                    keyInfo.setAttribute('style', 'display: none;');
+                }
+                else {
+                    keyInfo.setAttribute('class', 'hckt_show');
+                    keyInfo.setAttribute('style', 'display: block;');
+                }
+                return false;
+            };
+            document.querySelector('#hckt_revealAll').onclick = function () {
+                this.onclick = function () {return false;}
+                var textarea = document.querySelector('#hckt_revealArea');
+                textarea.value = "";
+                for (var l=0;l<content.length;l++) {
+                    if (choosed.indexOf(content[l].selName) >= 0) {
+                        var data = new FormData();
+                        data.append("keytype", content[l].rawName);
+                        data.append("key", gameKey);
+                        data.append("keyindex", 0);
+                        __this.getKey(textarea, content[l].title, data);
+                    }
+                }
+                return false;
+            }
         };
         hckt.prototype.run = function () {
             var _this = this;
@@ -420,12 +484,8 @@
                 xhr: true
             }).then(function (result) {
                 var rInfo = (new DOMParser()).parseFromString(result.body, "text/html");
-                if (rInfo.querySelector('#webpack-monthly-product-data') == null) {
-                    rInfo = rInfo.querySelector('#webpack-subscriber-hub-data');
-                }
-                else {
-                    rInfo = rInfo.querySelector('#webpack-monthly-product-data');
-                }
+                rInfo = rInfo.querySelector('#webpack-subscriber-hub-data') || rInfo.querySelector('#webpack-monthly-product-data');
+                if (!rInfo) {return;}
                 rInfo = JSON.parse(rInfo.innerHTML);
                 _this.showInfo(rInfo);
             }).catch(console.log);
