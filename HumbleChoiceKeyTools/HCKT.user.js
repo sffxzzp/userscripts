@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Humble Choice Key Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.07
+// @version      0.08
 // @description  Display Humble Choice region restriction infomation, and select game without reveal it's key, and reveal all selected keys.
 // @author       sffxzzp
 // @match        *://www.humblebundle.com/subscription/*
@@ -403,7 +403,7 @@
             for (var j=0;j<content.length;j++) {
                 out = `<span style="color: #169fe3;">${content[j].title}</span>`;
                 if (choosed.indexOf(content[j].selName) < 0) {
-                    out += `<a class="hckt_select" style="float: right; color: #169fe3; margin-left: 20px;" href="" link="https://www.humblebundle.com/humbler/choosecontent?gamekey=${gameKey}&parent_identifiers=initial&chosen_identifier=${content[j].selName}" target="_blank">只选不刮</a>`
+                    out += `<a class="hckt_select" style="float: right; color: #169fe3; margin-left: 20px;" href="" link="https://www.humblebundle.com/humbler/choosecontent?gamekey=${gameKey}&parent_identifier=initial&chosen_identifiers=${content[j].selName}" target="_blank">只选不刮</a>`
                 }
                 else {
                     out += `<a style="float: right; color: #f18d22; margin-left: 20px;" href="javascript:;">已选择过</a>`;
