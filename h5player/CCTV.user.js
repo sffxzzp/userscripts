@@ -12,7 +12,7 @@
 // @connect      hls.cntv.baishancdnx.cn
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
-// @updateURL    none
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/h5player/CCTV.user.js
 // ==/UserScript==
 
 (function() {
