@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HTML5 on CCTV
 // @namespace    https://github.com/sffxzzp
-// @version      0.04
+// @version      0.05
 // @description  Replace Flash Player with HTML5 Player on tv.cctv.com
 // @author       sffxzzp
 // @include      /^https?://tv.cctv.com/\d*/\d*/\d*/VIDE.*.shtml*/
@@ -84,6 +84,13 @@
                     quality: m3u8,
                     defaultQuality: m3u8.length-1
                 }
+            });
+            var curTime = localStorage.getItem(unsafeWindow.guid);
+            if (curTime) {
+                dp.seek(curTime);
+            }
+            dp.on('timeupdate', function () {
+                localStorage.setItem(unsafeWindow.guid, dp.video.currentTime);
             });
         }
         h5onCCTV.prototype.run = function () {
