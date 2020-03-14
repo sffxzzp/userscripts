@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HTML5 on CCTV
 // @namespace    https://github.com/sffxzzp
-// @version      0.05
+// @version      0.06
 // @description  Replace Flash Player with HTML5 Player on tv.cctv.com
 // @author       sffxzzp
 // @include      /^https?://tv.cctv.com/\d*/\d*/\d*/VIDE.*.shtml*/
@@ -88,9 +88,15 @@
             var curTime = localStorage.getItem(unsafeWindow.guid);
             if (curTime) {
                 dp.seek(curTime);
+                dp.notice('已跳转到上次观看进度 '+Math.floor(curTime)+' 秒', 2000);
             }
             dp.on('timeupdate', function () {
-                localStorage.setItem(unsafeWindow.guid, dp.video.currentTime);
+                if (dp.video.duration-dp.video.currentTime > 30) {
+                    localStorage.setItem(unsafeWindow.guid, dp.video.currentTime);
+                }
+                else {
+                    localStorage.removeItem(unsafeWindow.guid);
+                }
             });
         }
         h5onCCTV.prototype.run = function () {
