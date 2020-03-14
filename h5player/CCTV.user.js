@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HTML5 on CCTV
 // @namespace    https://github.com/sffxzzp
-// @version      0.02
+// @version      0.03
 // @description  Replace Flash Player with HTML5 Player on tv.cctv.com
 // @author       sffxzzp
 // @include      /^https?://tv.cctv.com/\d*/\d*/\d*/VIDE.*.shtml*/
@@ -11,6 +11,7 @@
 // @connect      vdn.apps.cntv.cn
 // @connect      hls.cntv.baishancdnx.cn
 // @grant        GM_xmlhttpRequest
+// @grant        GM_addStyle
 // @grant        unsafeWindow
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/h5player/CCTV.user.js
 // ==/UserScript==
@@ -71,16 +72,17 @@
     })();
     var h5onCCTV = (function () {
         function h5onCCTV() {};
-        h5onCCTV.prototype.addPlayer = function (url) {
+        h5onCCTV.prototype.addPlayer = function (m3u8) {
             var h5css = util.createElement({node: 'link', content: {rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'}});
             document.head.appendChild(h5css);
             var container = document.querySelector('.video_left');
+            GM_addStyle('.gwA151201_ind01, .retrieve {z-index: 0 important;}');
             util.setElement({node: container, content: {style: 'height: 100%'}, html: '<div id="dplayer" style="width: 100%; height: 100%;"></div>'});
             var dp = new DPlayer({
                 container: container.children[0],
                 video: {
-                    url: url,
-                    type: 'hls'
+                    quality: m3u8,
+                    defaultQuality: m3u8.length-1
                 }
             });
         }
@@ -93,8 +95,20 @@
                 util.xhr({
                     url: res.body.hls_url
                 }).then(function (res) {
-                    var m3u8 = res.body.split('\n');
-                    _this.addPlayer('https://hls.cntv.baishancdnx.cn'+m3u8[m3u8.length-2]);
+                    var vlist = res.body.split('\n');
+                    var m3u8s = [];
+                    vlist.forEach(function (v) {
+                        if (v.indexOf('m3u8')>-1) {
+                            m3u8s.push('https://hls.cntv.baishancdnx.cn'+v);
+                        }
+                    });
+                    m3u8s.reverse();
+                    var m3u8 = [{name: '超清', url: '', type: 'hls'}, {name: '高清', url: '', type: 'hls'}, {name: '标清', url: '', type: 'hls'}, {name: '流畅', url: '', type: 'hls'}];
+                    for (let i=0;i<m3u8s.length;i++) {
+                        m3u8[i].url = m3u8s[i];
+                    }
+                    m3u8.reverse();
+                    _this.addPlayer(m3u8);
                 });
             });
         };
