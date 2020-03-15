@@ -113,7 +113,6 @@
                     url: res.body.hls_url
                 }).then(function (res) {
                     var vlist = res.body.split('\n');
-                    console.log(vlist);
                     var m3u8 = [];
                     vlist.forEach(function (v) {
                         if (v.indexOf('/200.m3u8')>-1) {m3u8.push({name: '流畅', url: 'https://hls.cntv.baishancdnx.cn'+v, type: 'hls'});}
@@ -122,7 +121,6 @@
                         else if (v.indexOf('/1200.m3u8')>-1) {m3u8.push({name: '高清', url: 'https://hls.cntv.baishancdnx.cn'+v, type: 'hls'});}
                         else if (v.indexOf('/2000.m3u8')>-1) {m3u8.push({name: '超清', url: 'https://hls.cntv.baishancdnx.cn'+v, type: 'hls'});}
                     });
-                    console.log(m3u8);
                     _this.addPlayer(m3u8);
                 });
             });
