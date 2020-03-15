@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HTML5 on CCTV
 // @namespace    https://github.com/sffxzzp
-// @version      0.08
+// @version      0.09
 // @description  Replace Flash Player with HTML5 Player on tv.cctv.com
 // @author       sffxzzp
 // @include      /^https?://tv.cctv.com/\d*/\d*/\d*/VIDE.*.shtml*/
@@ -113,13 +113,16 @@
                     url: res.body.hls_url
                 }).then(function (res) {
                     var vlist = res.body.split('\n');
+                    console.log(vlist);
                     var m3u8 = [];
                     vlist.forEach(function (v) {
-                        if (v.indexOf('200.m3u8')>-1) {m3u8.push({name: '流畅', url: 'https://hls.cntv.baishancdnx.cn'+v, type: 'hls'});}
-                        else if (v.indexOf('450.m3u8')>-1) {m3u8.push({name: '标清', url: 'https://hls.cntv.baishancdnx.cn'+v, type: 'hls'});}
-                        else if (v.indexOf('850.m3u8')>-1) {m3u8.push({name: '高清', url: 'https://hls.cntv.baishancdnx.cn'+v, type: 'hls'});}
-                        else if (v.indexOf('2000.m3u8')>-1) {m3u8.push({name: '超清', url: 'https://hls.cntv.baishancdnx.cn'+v, type: 'hls'});}
+                        if (v.indexOf('/200.m3u8')>-1) {m3u8.push({name: '流畅', url: 'https://hls.cntv.baishancdnx.cn'+v, type: 'hls'});}
+                        else if (v.indexOf('/450.m3u8')>-1) {m3u8.push({name: '低清', url: 'https://hls.cntv.baishancdnx.cn'+v, type: 'hls'});}
+                        else if (v.indexOf('/850.m3u8')>-1) {m3u8.push({name: '标清', url: 'https://hls.cntv.baishancdnx.cn'+v, type: 'hls'});}
+                        else if (v.indexOf('/1200.m3u8')>-1) {m3u8.push({name: '高清', url: 'https://hls.cntv.baishancdnx.cn'+v, type: 'hls'});}
+                        else if (v.indexOf('/2000.m3u8')>-1) {m3u8.push({name: '超清', url: 'https://hls.cntv.baishancdnx.cn'+v, type: 'hls'});}
                     });
+                    console.log(m3u8);
                     _this.addPlayer(m3u8);
                 });
             });
