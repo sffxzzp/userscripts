@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HTML5 on CCTV
 // @namespace    https://github.com/sffxzzp
-// @version      0.10
+// @version      0.11
 // @description  Replace Flash Player with HTML5 Player on tv.cctv.com
 // @author       sffxzzp
 // @include      /^https?://tv.cctv.com/\d*/\d*/\d*/VIDE.*.shtml*/
@@ -10,6 +10,7 @@
 // @icon         https://tv.cctv.com/favicon.ico
 // @connect      vdn.apps.cntv.cn
 // @connect      hls.cntv.baishancdnx.cn
+// @connect      hls.cntv.myalicdn.com
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @grant        unsafeWindow
@@ -85,6 +86,7 @@
                     defaultQuality: m3u8.length-1
                 }
             });
+            unsafeWindow.dp = dp;
             var curTime = localStorage.getItem(unsafeWindow.guid);
             if (curTime) {
                 dp.seek(curTime);
