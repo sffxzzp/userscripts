@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HTML5 on CCTV
 // @namespace    https://github.com/sffxzzp
-// @version      0.14
+// @version      0.15
 // @description  Replace Flash Player with HTML5 Player on tv.cctv.com
 // @author       sffxzzp
 // @include      /^https?://tv.cctv.com/\d*/\d*/\d*/VIDE.*.shtml*/
@@ -76,12 +76,15 @@
             var container = document.querySelector('.video_left');
             GM_addStyle('.gwA151201_ind01, .retrieve, .buttonVal, #page_body > .column_wrapper, .video, .video .right_but, .cnt_share, [class^=jscroll] {z-index: auto !important;} .nav2 > div > div {z-index: 1 !important;}');
             util.setElement({node: container, content: {style: 'height: 100%'}, html: '<div id="dplayer" style="width: 100%; height: 100%;"></div>'});
+            var pip = document.pictureInPictureEnabled ? [{text: '画中画模式', click: function () {document.querySelector('.dplayer-video').requestPictureInPicture().catch(console.log);}}] : [];
             var dp = new DPlayer({
                 container: container.children[0],
                 video: {
                     quality: m3u8,
                     defaultQuality: m3u8.length-1
-                }
+                },
+                preload: 'none',
+                contextmenu: pip
             });
             unsafeWindow.dp = dp;
             var curTime = localStorage.getItem(unsafeWindow.guid);
