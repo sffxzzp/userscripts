@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili jump to av num
 // @namespace    https://github.com/sffxzzp
-// @version      0.10
+// @version      0.11
 // @description  redirect bilibili's BVid to aid
 // @author       sffxzzp
 // @include      /https:\/\/www.bilibili.com\/video\/[Bb][Vv].*/
@@ -32,8 +32,8 @@
     var bv = /video\/([Bb][Vv].*)/.exec(location.href)[1].split('/')[0];
     var av = dec(bv);
     var query = location.href.split('/?')[1];
-    query = query == undefined ? '' : query;
+    query = query == undefined ? '' : '?'+query;
     if (av) {
-        history.replaceState(null, document.title, 'https://www.bilibili.com/video/av'+av+'/?'+query);
+        history.replaceState(null, document.title, 'https://www.bilibili.com/video/av'+av+'/'+query);
     }
 })();
