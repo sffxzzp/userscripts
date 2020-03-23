@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili jump to av num
 // @namespace    https://github.com/sffxzzp
-// @version      0.02
+// @version      0.03
 // @description  redirect bilibili's BVid to aid
 // @author       sffxzzp
 // @match        https://www.bilibili.com/video/BV*
@@ -11,5 +11,5 @@
 // ==/UserScript==
 
 (function() {
-    location.href = location.href.substr(0, location.href.length-12)+'av'+unsafeWindow.aid;
+    location.href = 'https://www.bilibili.com/video/av'+unsafeWindow.aid;
 })();
