@@ -7,6 +7,7 @@
 // @include      /https?://(keylol.com).*/
 // @grant        unsafeWindow
 // @run-at       document-start
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/other/blocksw.user.js
 // ==/UserScript==
 
 (function() {
