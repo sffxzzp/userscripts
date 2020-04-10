@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Keylol Markdown Editor
 // @namespace    https://github.com/
-// @version      0.02
+// @version      0.03
 // @description  Replace keylol.com default editor to a markdown editor which will transform markdown to bbcode.
 // @author       sffxzzp
 // @include      /https?://(dev\.)?keylol\.com/forum\.php\?mod=post&action=(newthread|edit|reply).*?/
@@ -41,16 +41,16 @@
             this.oriText = unsafeWindow.trim(this.oriEditor.value);
             this.oriEditor.onkeyup = () => {_this.oriText = unsafeWindow.trim(_this.oriEditor.value); document.querySelector('#sff_md_text').value = ''};
             this.renderer = new marked.Renderer();
-            this.renderer.code = function (code, info, escaped) {return `[code]language: ${info}\n${code}[/code]`};
-            this.renderer.blockquote = function (quote) {return `[quote]${quote}[/quote]`};
+            this.renderer.code = function (code, info, escaped) {return `[code]language: ${info}\n${code}[/code]\n`};
+            this.renderer.blockquote = function (quote) {return `[quote]${quote}[/quote]\n`};
             this.renderer.html = function (html) {return ``};
             this.renderer.heading = function (text, level) {return `[sh${level-1}]${text}[/sh${level-1}]\n`};
-            this.renderer.hr = function () {return `[img]static/image/hrline/3.gif[/img]`};
-            this.renderer.list = function (body, ordered, start) {return `[list${(ordered == true) ? '=1' : ''}]\n${body}[/list]`};
+            this.renderer.hr = function () {return `[img]static/image/hrline/3.gif[/img]\n`};
+            this.renderer.list = function (body, ordered, start) {return `[list${(ordered == true) ? '=1' : ''}]\n${body}[/list]\n`};
             this.renderer.listitem = function (text, task, checked) {return `[*]${text}\n`};
             this.renderer.checkbox = function (checked) {return `[${checked ? '√' : '×'}] `};
-            this.renderer.paragraph = function (text) {return `${util.entityToString(text).replace(/\n/g, '')}\n`};
-            this.renderer.table = function (header, body) {return `[table]\n${header}${body}[/table]`};
+            this.renderer.paragraph = function (text) {return `${util.entityToString(text)}\n`};
+            this.renderer.table = function (header, body) {return `[table]\n${header}${body}[/table]\n`};
             this.renderer.tablerow = function (content) {return `[tr]${content}[/tr]\n`};
             this.renderer.tablecell = function (content, flags) {
                 if (flags.header) {content = `[b]${content}[/b]`;}
@@ -59,7 +59,7 @@
             };
             this.renderer.strong = function (text) {return `[b]${text}[/b]`};
             this.renderer.em = function (text) {return `[i]${text}[/i]`};
-            this.renderer.codespan = function (code) {return `「${text}」`};
+            this.renderer.codespan = function (code) {return `「${code}」`};
             this.renderer.br = function () {return `\n`};
             this.renderer.del = function (text) {return `[s]${text}[/s]`};
             this.renderer.link = function (href, title, text) {return `[url=${href}]${text}[/url]`};
