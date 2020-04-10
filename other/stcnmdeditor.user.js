@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         Keylol Markdown Editor
 // @namespace    https://github.com/
-// @version      0.01
+// @version      0.02
 // @description  Replace keylol.com default editor to a markdown editor which will transform markdown to bbcode.
 // @author       sffxzzp
-// @include      /https?://(dev\.)?keylol\.com/forum\.php\?mod=post&action=(newthread|edit).*?/
+// @include      /https?://(dev\.)?keylol\.com/forum\.php\?mod=post&action=(newthread|edit|reply).*?/
 // @icon         https://keylol.com/favicon.ico
 // @require      https://cdn.jsdelivr.net/npm/marked/marked.min.js
 // @grant        unsafeWindow
@@ -71,7 +71,7 @@
             this.oriEditor.value = unsafeWindow.trim(this.oriText + '\n' + output);
         };
         kme.prototype.run = function () {
-            let mdEditor = util.createElement({node: 'textarea', content: {id: 'sff_md_text', style: 'font-size: 16px; font-family: "Noto sans CJK SC","Microsoft JhengHei UI","Microsoft YaHei UI",sans-serif; width: calc(100% - 10px); min-height: 150px; border: 1px solid grey;'}});
+            let mdEditor = util.createElement({node: 'textarea', content: {id: 'sff_md_text', style: 'font-size: 14px; font-family: "Noto sans CJK SC","Microsoft JhengHei UI","Microsoft YaHei UI",sans-serif; width: calc(100% - 10px); min-height: 150px; border: 1px solid grey;'}});
             mdEditor.onkeyup = () => this.onMDEdit();
             let editorDiv = document.querySelector('#e_body .area');
             editorDiv.insertBefore(mdEditor, document.querySelector('#e_textarea'));
