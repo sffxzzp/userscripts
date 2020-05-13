@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Keylol Markdown Editor
 // @namespace    https://github.com/
-// @version      0.10
+// @version      0.11
 // @description  Replace keylol.com default editor to a markdown editor which will transform markdown to bbcode.
 // @author       sffxzzp
 // @include      /https?://(dev\.)?keylol\.com/forum\.php\?mod=post&action=(newthread|edit|reply).*?/
@@ -42,7 +42,7 @@
             this.renderer.code = function (code, info, escaped) {return `[code]${info?'language: '+info+'\n':''}${code}[/code]\n`};
             this.renderer.blockquote = function (quote) {return `[quote]${quote}[/quote]\n`};
             this.renderer.html = function (html) {return html};
-            this.renderer.heading = function (text, level) {return `[sh${level-1}]${text}[/sh${level-1}]\n`};
+            this.renderer.heading = function (text, level) {return `[k${level-1}]${text}[/k${level-1}]\n`};
             this.renderer.hr = function () {return `[img]static/image/hrline/3.gif[/img]\n`};
             this.renderer.list = function (body, ordered, start) {return `[list${(ordered == true) ? '=1' : ''}]\n${body}[/list]`};
             this.renderer.listitem = function (text, task, checked) {return `[*]${text}\n`};
@@ -103,6 +103,8 @@
             var _this = this;
             let sh = /\[sh(\d)\](.*?)\[\/sh\d\]/g.exec(text);
             if (sh) {text = text.replace(sh[0], `${_this.strTimes('#', parseInt(sh[1])+1)} ${sh[2]}`);};
+            let k = /\[k(\d)\](.*?)\[\/k\d\]/g.exec(text);
+            if (k) {text = text.replace(k[0], `${_this.strTimes('#', parseInt(k[1])+1)} ${k[2]}`);};
             return '\n'+text+'\n';
         };
         kme.prototype.remarkedList = function (text) {
@@ -142,6 +144,12 @@
             if (sh!=null) {
                 sh.forEach(function (sh) {
                     text = text.replace(sh, _this.remarkedHeader(sh));
+                });
+            }
+            let k = text.match(/\[k\d\].*?\[\/k\d\]/g);
+            if (k!=null) {
+                k.forEach(function (sh) {
+                    text = text.replace(k, _this.remarkedHeader(k));
                 });
             }
             let list = text.match(/\[list.*?\]([\s\S]*?)\[\/list\]/g);
