@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Keylol Markdown Editor
 // @namespace    https://github.com/
-// @version      0.11
+// @version      0.12
 // @description  Replace keylol.com default editor to a markdown editor which will transform markdown to bbcode.
 // @author       sffxzzp
 // @include      /https?://(dev\.)?keylol\.com/forum\.php\?mod=post&action=(newthread|edit|reply).*?/
@@ -148,7 +148,7 @@
             }
             let k = text.match(/\[k\d\].*?\[\/k\d\]/g);
             if (k!=null) {
-                k.forEach(function (sh) {
+                k.forEach(function (k) {
                     text = text.replace(k, _this.remarkedHeader(k));
                 });
             }
