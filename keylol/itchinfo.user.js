@@ -1,16 +1,17 @@
 // ==UserScript==
-// @name        Itch.io Info
-// @namespace   https://github.com/sffxzzp
-// @description 快速匹配 Itch.io 游戏信息
-// @include     https://steamdb.keylol.com/sync
-// @include     http://steamdb.sinaapp.com/sync
-// @include     /https?:\/\/keylol.com\/.*/
-// @grant       GM_xmlhttpRequest
-// @grant       GM_setValue
-// @grant       GM_getValue
-// @grant       GM_deleteValue
-// @version     0.01
-// @connect     itch.io
+// @name         Itch.io Info
+// @namespace    https://github.com/sffxzzp
+// @description  快速匹配 Itch.io 游戏信息
+// @include      https://steamdb.keylol.com/sync
+// @include      http://steamdb.sinaapp.com/sync
+// @include      /https?:\/\/keylol.com\/.*/
+// @grant        GM_xmlhttpRequest
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        GM_deleteValue
+// @version      0.02
+// @connect      itch.io
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/keylol/itchinfo.user.js
 // ==/UserScript==
 
 (function () {
@@ -33,7 +34,8 @@
         var page = (new DOMParser()).parseFromString(html, 'text/html');
         var data = [];
         page.querySelectorAll('.game_cell').forEach(function (game) {
-            data.push(game.querySelector('.game_title > a').innerHTML);
+            var node = game.querySelector('.game_title > a');
+            data.push({title: node.innerHTML, url: node.getAttribute('href').split('download')[0]});
         });
         return data;
     }
@@ -64,8 +66,14 @@
         }
         document.querySelectorAll('td[id^=postmessage_] a').forEach(function (a) {
             for (var game in data) {
-                if (a.innerHTML.indexOf(data[game])>-1) {
-                    a.innerHTML = '<span style="background-color: #5c8a00; color: white;">[Itch.io]</span> '+a.innerHTML;
+                if (data[game].title.trim().toLowerCase() == a.innerHTML.trim().toLowerCase()) {
+                    var nlink = document.createElement('a');
+                    nlink.style = 'background-color: #5c8a00; color: white;'
+                    nlink.href = data[game].url;
+                    nlink.innerHTML = '[Itch.io]';
+                    nlink.setAttribute('target', '_blank');
+                    a.parentNode.insertBefore(nlink, a);
+                    a.innerHTML = ' ' + a.innerHTML;
                     break;
                 }
             }
