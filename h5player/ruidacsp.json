@@ -1,0 +1,21 @@
+{
+	"request": [],
+	"sendHeader": [],
+	"receiveHeader": [
+		{
+			"enable": true,
+			"name": "Ruida CSP",
+			"ruleType": "modifyReceiveHeader",
+			"matchType": "domain",
+			"pattern": "ssec.ruidaedu.com",
+			"exclude": "",
+			"group": "",
+			"isFunction": false,
+			"action": {
+				"name": "access-control-allow-origin",
+				"value": "*"
+			}
+		}
+	],
+	"receiveBody": []
+}
