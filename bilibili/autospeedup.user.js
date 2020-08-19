@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili Auto SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
+// @version      0.02
 // @description  Sets playback rate for video.
 // @author       sffxzzp
 // @match        *://www.bilibili.com/*
@@ -46,7 +46,8 @@
                     var pbrate = localStorage.getItem('auto_speedup') || 1;
                     for (let l=0;l<menu.children.length;l++) {
                         if (menu.children[l].getAttribute('data-value')==pbrate) {
-                            menu.children[l].click();
+                            setTimeout(function () {menu.children[l].click();}, 500);
+                            break;
                         }
                     }
                     break;
