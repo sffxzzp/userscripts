@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili Auto SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      0.02
+// @version      0.03
 // @description  Sets playback rate for video.
 // @author       sffxzzp
 // @match        *://www.bilibili.com/*
@@ -12,7 +12,7 @@
 
 (function() {
     var extraSpeeds = [2.5, 3, 4, 5];
-    var player = document.querySelector('#bilibiliPlayer') || null;
+    var player = document.querySelector('#bofqi') || null;
     if (player) {
         var observer = new MutationObserver(function (recs) {
             for (let i=0;i<recs.length;i++) {
