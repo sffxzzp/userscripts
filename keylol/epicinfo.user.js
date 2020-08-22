@@ -9,7 +9,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_removeValue
-// @version      0.01
+// @version      0.02
 // @connect      www.epicgames.com
 // @connect      store-content.ak.epicgames.com
 // @icon         https://www.epicgames.com/favicon.ico
@@ -84,7 +84,7 @@
         if (data) {
             data = JSON.parse(data);
         }
-        document.querySelectorAll('td[id^=postmessage_] a').forEach(function (a) {
+        document.querySelectorAll('[id^=pid] a').forEach(function (a) {
             if (a.href.indexOf('epicgames.com')>-1) {
                 for (var game of data) {
                     if (a.href.indexOf(game)>-1) {
