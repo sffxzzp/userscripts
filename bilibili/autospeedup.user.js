@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili Auto SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      0.03
+// @version      0.04
 // @description  Sets playback rate for video.
 // @author       sffxzzp
 // @match        *://www.bilibili.com/*
@@ -11,7 +11,11 @@
 // ==/UserScript==
 
 (function() {
+    // 额外的加速选项，可自定义
     var extraSpeeds = [2.5, 3, 4, 5];
+    // 是否记忆速度以在其他视频自动变速
+    var remember = true;
+
     var player = document.querySelector('#bofqi') || null;
     if (player) {
         var observer = new MutationObserver(function (recs) {
@@ -43,11 +47,13 @@
                             }
                         }
                     }
-                    var pbrate = localStorage.getItem('auto_speedup') || 1;
-                    for (let l=0;l<menu.children.length;l++) {
-                        if (menu.children[l].getAttribute('data-value')==pbrate) {
-                            setTimeout(function () {menu.children[l].click();}, 500);
-                            break;
+                    if (remember) {
+                        var pbrate = localStorage.getItem('auto_speedup') || 1;
+                        for (let l=0;l<menu.children.length;l++) {
+                            if (menu.children[l].getAttribute('data-value')==pbrate) {
+                                setTimeout(function () {menu.children[l].click();}, 500);
+                                break;
+                            }
                         }
                     }
                     break;
