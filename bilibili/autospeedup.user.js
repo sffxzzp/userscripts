@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili Auto SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      0.06
+// @version      0.07
 // @description  Sets playback rate for video.
 // @author       sffxzzp
 // @match        *://www.bilibili.com/*
@@ -72,11 +72,15 @@
     var keydown = document.onkeydown || function () {};
     document.onkeydown = function () {
         keydown();
-        if (window.event.keyCode == 39 && event.ctrlKey) {
+        if (event.keyCode == 39 && event.shiftKey) {
             player.querySelector('video').currentTime = player.querySelector('video').currentTime + 80;
         }
-        if (window.event.keyCode == 37 && event.ctrlKey) {
+        if (event.keyCode == 37 && event.shiftKey) {
             player.querySelector('video').currentTime = player.querySelector('video').currentTime - 80;
+        }
+        if (event.key == 'N' && event.shiftKey) {
+            var next = player.querySelector('.bilibili-player-video-btn-next') || null;
+            if (next) {next.click();}
         }
     }
 })();
