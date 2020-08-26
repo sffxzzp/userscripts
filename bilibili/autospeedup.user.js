@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili Auto SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      0.07
+// @version      0.08
 // @description  Sets playback rate for video.
 // @author       sffxzzp
 // @match        *://www.bilibili.com/*
@@ -39,7 +39,7 @@
             var nspeed = document.createElement('li');
             nspeed.className = 'bilibili-player-video-btn-speed-menu-list ';
             nspeed.setAttribute('data-value', speed);
-            nspeed.innerHTML = `${parseFloat(speed).toFixed(1)}x`;
+            nspeed.innerHTML = `${Math.round(speed * 100) / 100}x`;
             menu.insertBefore(nspeed, menu.children[0]);
         });
         for (let j=0;j<menu.children.length;j++) {
