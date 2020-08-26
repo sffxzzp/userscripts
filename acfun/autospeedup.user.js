@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Acfun Auto SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
+// @version      0.02
 // @description  Sets playback rate for video.
 // @author       sffxzzp
 // @match        *://www.acfun.cn/*
@@ -63,7 +63,6 @@
         keydown();
         if (event.key == 'N' && event.shiftKey) {
             var next = player.querySelector('.btn-next-part > .control-btn') || null;
-            console.log(next);
             if (next) {next.click();}
         }
     }
