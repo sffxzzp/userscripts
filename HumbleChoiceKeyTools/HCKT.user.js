@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Humble Choice Key Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.10
+// @version      0.11
 // @description  Display Humble Choice region restriction infomation, and select game without reveal it's key, and reveal all selected keys.
 // @author       sffxzzp
 // @match        *://www.humblebundle.com/subscription/*
@@ -362,7 +362,7 @@
             var subname = '';
             if (info.contentChoicesMade) {
                 for (let sName in info.contentChoicesMade) {
-                    if (sName.indexOf('initial')>-1) {
+                    if (sName.indexOf('initial')>-1 && sName != 'initial-without-order') {
                         subname = sName;
                         break;
                     }
@@ -371,10 +371,13 @@
             }
             var gameKey = info.gamekey;
             for (let sName in info.contentChoicesData) {
-                if (sName.indexOf('initial')>-1) {
+                if (sName.indexOf('initial')>-1 && sName != 'initial-without-order') {
                     subname = sName;
                     break;
                 }
+            }
+            if (subname == '') {
+                console.log('Error fetching subscribe type.');
             }
             info = info.contentChoiceData[subname];
             var order = info.display_order;
@@ -416,7 +419,7 @@
             for (var j=0;j<content.length;j++) {
                 out = `<span style="color: #169fe3;">${content[j].title}</span>`;
                 if (choosed.indexOf(content[j].selName) < 0) {
-                    out += `<a class="hckt_select" style="float: right; color: #169fe3; margin-left: 20px;" href="" link="https://www.humblebundle.com/humbler/choosecontent?gamekey=${gameKey}&parent_identifier=initial&chosen_identifiers%5B%5D=${content[j].selName}" target="_blank">只选不刮</a>`
+                    out += `<a class="hckt_select" style="float: right; color: #169fe3; margin-left: 20px;" href="" link="https://www.humblebundle.com/humbler/choosecontent?gamekey=${gameKey}&parent_identifier=${subname}&chosen_identifiers%5B%5D=${content[j].selName}" target="_blank">只选不刮</a>`
                 }
                 else {
                     out += `<a style="float: right; color: #f18d22; margin-left: 20px;" href="javascript:;">已选择过</a>`;
