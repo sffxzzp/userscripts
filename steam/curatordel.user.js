@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Curator Delete Review Button
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
+// @version      0.02
 // @description  add a delete button in curator's review create page.
 // @author       sffxzzp
 // @match        *://store.steampowered.com/curator/*/admin/review_create/*
 // @icon         https://store.steampowered.com/favicon.ico
 // @grant        unsafeWindow
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/steam/curatordel.user.js
 // ==/UserScript==
 
 (function() {
