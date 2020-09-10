@@ -9,7 +9,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_removeValue
-// @version      0.02
+// @version      0.03
 // @connect      www.epicgames.com
 // @connect      store-content.ak.epicgames.com
 // @icon         https://www.epicgames.com/favicon.ico
@@ -17,12 +17,14 @@
 // ==/UserScript==
 
 (function () {
-    function get(page) {
+    function get(page, lastCreatedAt) {
         document.getElementById('epic_page').innerHTML = `第 ${page+1} 页`;
+        var lastLink = '';
+        if (lastCreatedAt > 0) {lastLink = '&lastCreatedAt='+encodeURIComponent(new Date(lastCreatedAt).toISOString());}
         return new Promise((resolve, reject) => {
             GM_xmlhttpRequest({
                 method: 'GET',
-                url: 'https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?page='+page,
+                url: 'https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?page='+page+lastLink,
                 timeout: 3e4,
                 onload: function (res) {
                     resolve(JSON.parse(res.response));
@@ -63,12 +65,14 @@
                 ontimeout: reject
             });
         });
+        var lastCreatedAt = 0;
         while (exit == 0) {
-            var pageData = await get(page);
+            var pageData = await get(page, lastCreatedAt);
             if (pageData.orders.length < 1) {
                 exit = 1;
             }
             else {
+                lastCreatedAt = pageData.orders[pageData.orders.length-1].createdAtMillis;
                 data = data.concat(parsePage(pageData.orders, namespace));
             }
             page += 1;
@@ -88,7 +92,7 @@
             if (a.href.indexOf('epicgames.com')>-1) {
                 for (var game of data) {
                     if (a.href.indexOf(game)>-1) {
-                        a.style = 'background-color: #5c8a00; color: white;';
+                        a.style = 'background-color: darkorange; color: white;';
                     }
                 }
             }
