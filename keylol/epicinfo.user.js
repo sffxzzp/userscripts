@@ -9,7 +9,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_removeValue
-// @version      0.03
+// @version      0.04
 // @connect      www.epicgames.com
 // @connect      store-content.ak.epicgames.com
 // @icon         https://www.epicgames.com/favicon.ico
@@ -17,6 +17,10 @@
 // ==/UserScript==
 
 (function () {
+    function fixNamespace(namespace) {
+        namespace['86ce9e7a94704e8eb1f9dbe16310e701'] = ['lego-batman', 'lego-batman-2', 'lego-batman-3'];
+        return namespace;
+    }
     function get(page, lastCreatedAt) {
         document.getElementById('epic_page').innerHTML = `第 ${page+1} 页`;
         var lastLink = '';
@@ -27,7 +31,12 @@
                 url: 'https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?page='+page+lastLink,
                 timeout: 3e4,
                 onload: function (res) {
-                    resolve(JSON.parse(res.response));
+                    try {
+                        resolve(JSON.parse(res.response));
+                    }
+                    catch (err) {
+                        document.getElementById('epic_page').innerHTML = '错误';
+                    }
                 },
                 onerror: reject,
                 ontimeout: reject
@@ -41,7 +50,7 @@
                 order.items.forEach(function (game) {
                     if (namespace.hasOwnProperty(game.namespace)) {
                         if (data.indexOf(namespace[game.namespace]) < 0) {
-                            data.push(namespace[game.namespace]);
+                            data = data.concat(namespace[game.namespace]);
                         }
                     }
                 });
@@ -65,6 +74,7 @@
                 ontimeout: reject
             });
         });
+        namespace = fixNamespace(namespace)
         var lastCreatedAt = 0;
         while (exit == 0) {
             var pageData = await get(page, lastCreatedAt);
