@@ -9,7 +9,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_removeValue
-// @version      0.05
+// @version      0.06
 // @connect      www.epicgames.com
 // @connect      store-content.ak.epicgames.com
 // @icon         https://www.epicgames.com/favicon.ico
@@ -18,7 +18,13 @@
 
 (function () {
     function fixNamespace(namespace) {
-        namespace['86ce9e7a94704e8eb1f9dbe16310e701'] = ['lego-batman', 'lego-batman-2', 'lego-batman-3'];
+        for (let ns in namespace) {
+            namespace[ns] = `product/${namespace[ns]}/home`;
+        }
+        namespace['85189f7cf7a64f86aa6aa91d81d36c08'] = 'bundles/borderlands-the-handsome-collection';
+        namespace['bd8a7e894699493fb21503837f7b66c5'] = 'bundles/shadowrun-collection';
+        namespace['4d1607defb8840cdb849d47d012b249b'] = ['product/lego-batman/home', 'product/lego-batman-2/home', 'product/lego-batman-3/home'];
+        namespace['86ce9e7a94704e8eb1f9dbe16310e701'] = ['product/batman-arkham-asylum/home', 'product/batman-arkham-city/home', 'product/batman-arkham-knight/home'];
         return namespace;
     }
     function get(page, lastCreatedAt) {
@@ -74,7 +80,7 @@
                 ontimeout: reject
             });
         });
-        namespace = fixNamespace(namespace)
+        namespace = fixNamespace(namespace);
         var lastCreatedAt = 0;
         while (exit == 0) {
             var pageData = await get(page, lastCreatedAt);
@@ -101,7 +107,7 @@
         document.querySelectorAll('[id^=pid] a').forEach(function (a) {
             if (a.href.indexOf('epicgames.com')>-1) {
                 for (var game of data) {
-                    if (a.href.indexOf(`/${game}/`)>-1) {
+                    if (a.href.indexOf(game)>-1) {
                         a.style = 'background-color: darkorange; color: white;';
                     }
                 }
