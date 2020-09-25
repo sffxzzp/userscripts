@@ -16,7 +16,7 @@
     // 是否记忆速度以在其他视频自动变速
     var remember = true;
 
-    var player = document.querySelector('#bofqi') || null;
+    var player = document.querySelector('#bofqi') || document.querySelector('#bilibili-player') || null;
     if (player) {
         var observer = new MutationObserver(function (recs) {
             for (let i=0;i<recs.length;i++) {
@@ -72,10 +72,10 @@
     var keydown = document.onkeydown || function () {};
     document.onkeydown = function () {
         keydown();
-        if (event.keyCode == 39 && event.shiftKey) {
+        if (event.key == '>' && event.shiftKey) {
             player.querySelector('video').currentTime = player.querySelector('video').currentTime + 80;
         }
-        if (event.keyCode == 37 && event.shiftKey) {
+        if (event.key == '<' && event.shiftKey) {
             player.querySelector('video').currentTime = player.querySelector('video').currentTime - 80;
         }
         if (event.key == 'N' && event.shiftKey) {
