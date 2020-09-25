@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili Auto SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      0.08
+// @version      0.09
 // @description  Sets playback rate for video.
 // @author       sffxzzp
 // @match        *://www.bilibili.com/*
