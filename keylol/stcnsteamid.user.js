@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Keylol SteamID Display
 // @namespace    https://github.com/sffxzzp
-// @version      0.02
+// @version      0.03
 // @description  Display hided SteamID in keylol's steam connect bar
 // @author       sffxzzp
 // @match        *://keylol.com/t*
@@ -63,6 +63,20 @@
                 var name = await _this.getNameFromSteam64ID(steam64id);
                 node.innerHTML = `社区昵称：${name} ` + node.innerHTML;
             });
+            var postlist = document.getElementById("postlist");
+            var observer = new MutationObserver(async function (recs) {
+                for (let i=0;i<recs.length;i++) {
+                    let rec = recs[i];
+                    if (rec.target.id.substr(0, 8) == 'postlist') {
+                        var replybar = rec.target.querySelector('.steam_connect_user_bar');
+                        var steam64id = replybar.querySelector('.steam_connect_user_bar_link_repcn').href.split('profiles/')[1];
+                        var name = await _this.getNameFromSteam64ID(steam64id);
+                        replybar.innerHTML = `社区昵称：${name} ` + replybar.innerHTML;
+                        break;
+                    }
+                }
+            });
+            observer.observe(postlist, { childList: true, subtree: true });
         };
         return ksd;
     })();
