@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Keylol SteamID Display
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
+// @version      0.02
 // @description  Display hided SteamID in keylol's steam connect bar
 // @author       sffxzzp
 // @match        *://keylol.com/t*
@@ -36,8 +36,14 @@
     })();
     var ksd = (function () {
         var ksd = function () {};
+        ksd.prototype.setNameToLocalStorage = function (steam64id, name) {
+            var nameList = JSON.parse(localStorage.getItem('ksd')) || {};
+            nameList[steam64id] = name;
+            localStorage.setItem('ksd', JSON.stringify(nameList));
+        }
         ksd.prototype.getNameFromSteam64ID = async function (steam64id) {
-            var name = localStorage.getItem('ksd_'+steam64id);
+            var nameList = JSON.parse(localStorage.getItem('ksd')) || {};
+            var name = nameList[steam64id];
             if (name) {
                 return name;
             }
@@ -45,7 +51,7 @@
                 var xmlData = await util.xhr({url: `https://steamcommunity.com/profiles/${steam64id}/?xml=1`});
                 xmlData = (new DOMParser).parseFromString(xmlData.body, 'text/xml');
                 name = xmlData.querySelector('steamID').textContent;
-                localStorage.setItem('ksd_'+steam64id, name);
+                this.setNameToLocalStorage(steam64id, name);
                 return name;
             }
         };
