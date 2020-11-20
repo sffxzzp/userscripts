@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Keylol SteamID Display
 // @namespace    https://github.com/sffxzzp
-// @version      0.05
+// @version      0.06
 // @description  Display hided SteamID in keylol's steam connect bar
 // @author       sffxzzp
 // @match        *://keylol.com/t*
@@ -15,7 +15,7 @@
 
 (function() {
     // Get data from Steam Web API.
-    var useapi = true;
+    var useapi = false;
     // API Key, copied from Enhanced Steam.
     var apikey = '824367C3B8AA3C7EADD70FF8A0DB3516';
 
@@ -69,9 +69,11 @@
             }
         };
         ksd.prototype.addSteamID = async function (node) {
-            var steam64id = node.querySelector('.steam_connect_user_bar_link_repcn').href.split('profiles/')[1];
-            var name = await this.getNameFromSteam64ID(steam64id);
-            node.insertBefore(document.createTextNode(`社区昵称：${name} `), node.children[0]);
+            if (node.innerHTML.indexOf('社区昵称') < 0) {
+                var steam64id = node.querySelector('.steam_connect_user_bar_link_repcn').href.split('profiles/')[1];
+                var name = await this.getNameFromSteam64ID(steam64id);
+                node.insertBefore(document.createTextNode(`社区昵称：${name} `), node.children[0]);
+            }
         };
         ksd.prototype.run = function () {
             var _this = this;
