@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Humble Choice Key Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.12
+// @version      0.13
 // @description  Display Humble Choice region restriction infomation, and select game without reveal it's key, and reveal all selected keys.
 // @author       sffxzzp
 // @match        *://www.humblebundle.com/subscription/*
@@ -281,8 +281,9 @@
                         method: xhrData.method || "get",
                         url: xhrData.url,
                         data: xhrData.data,
+                        headers: xhrData.headers || {},
                         responseType: xhrData.type || "",
-                        timeout: 3e4,
+                        timeout: 3e5,
                         onload: function onload(res) {
                             return resolve({ response: res, body: res.response });
                         },
@@ -291,20 +292,12 @@
                     });
                 } else {
                     var xhr = new XMLHttpRequest();
-                    xhr.open(
-                        xhrData.method || "get",
-                        xhrData.url,
-                        true
-                    );
-                    if (xhrData.method === "POST") {
-                        xhr.setRequestHeader(
-                            "content-type",
-                            "application/x-www-form-urlencoded; charset=utf-8"
-                        );
-                    }
-                    if (xhrData.cookie) xhr.withCredentials = true;
-                    xhr.responseType = xhrData.responseType || "";
-                    xhr.timeout = 3e4;
+                    xhr.open(xhrData.method || "get", xhrData.url, true);
+                    if (xhrData.method === "post") {xhr.setRequestHeader("content-type", "application/x-www-form-urlencoded; charset=utf-8");}
+                    if (xhrData.cookie) {xhr.withCredentials = true;}
+                    xhr.responseType = xhrData.type || "";
+                    xhr.timeout = 3e5;
+                    if (xhrData.headers) {for (var k in xhrData.headers) {xhr.setRequestHeader(k, xhrData.headers[k]);}}
                     xhr.onload = function(ev) {
                         var evt = ev.target;
                         resolve({ response: evt, body: evt.response });
@@ -355,8 +348,12 @@
                 }
             });
         };
+        hckt.prototype.getCSRFToken = function (htmlstr) {
+            return (new DOMParser()).parseFromString(htmlstr, 'text/html').querySelector('.csrftoken').getAttribute('value');
+        };
         hckt.prototype.showInfo = function (info) {
             var __this = this;
+            var csrfToken = __this.getCSRFToken(info.csrfTokenInput);
             info = info.contentChoiceOptions;
             var choosed = [];
             var subname = '';
@@ -419,7 +416,7 @@
             for (var j=0;j<content.length;j++) {
                 out = `<span style="color: #169fe3;">${content[j].title}</span>`;
                 if (choosed.indexOf(content[j].selName) < 0) {
-                    out += `<a class="hckt_select" style="float: right; color: #169fe3; margin-left: 20px;" href="" link="https://www.humblebundle.com/humbler/choosecontent?gamekey=${gameKey}&parent_identifier=${subname}&chosen_identifiers%5B%5D=${content[j].selName}" target="_blank">只选不刮</a>`
+                    out += `<a class="hckt_select" style="float: right; color: #169fe3; margin-left: 20px;" href="" data="gamekey=${gameKey}&parent_identifier=${subname}&chosen_identifiers%5B%5D=${content[j].selName}&is_multikey_and_from_choice_modal=false" target="_blank">只选不刮</a>`
                 }
                 else {
                     out += `<a style="float: right; color: #f18d22; margin-left: 20px;" href="javascript:;">已选择过</a>`;
@@ -452,7 +449,13 @@
                     var _node = this;
                     _node.onclick = function () {return false;}
                     _node.innerHTML = '请稍等…'
-                    util.xhr({url: _node.getAttribute('link'), xhr: true}).then(function (result) {
+                    util.xhr({
+                        url: `https://www.humblebundle.com/humbler/choosecontent`,
+                        method: 'post',
+                        data: _node.getAttribute('data'),
+                        headers: {'CSRF-Prevention-Token': csrfToken},
+                        xhr: true
+                    }).then(function (result) {
                         result = JSON.parse(result.body);
                         if (result.success) {
                             _node.innerHTML = '已选择过';
