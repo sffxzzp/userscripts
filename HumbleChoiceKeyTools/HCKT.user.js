@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Humble Choice Key Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.13
+// @version      0.14
 // @description  Display Humble Choice region restriction infomation, and select game without reveal it's key, and reveal all selected keys.
 // @author       sffxzzp
 // @match        *://www.humblebundle.com/subscription/*
@@ -380,16 +380,36 @@
             var order = info.display_order;
             var content = [];
             for (var i=0;i<order.length;i++) {
-                var rInfo = info.content_choices[order[i]]
-                content[i] = {
-                    title: rInfo.title,
-                    exclusive: rInfo.tpkds[0].exclusive_countries,
-                    disallow: rInfo.tpkds[0].disallowed_countries,
-                    rawName: rInfo.tpkds[0].machine_name,
-                    appid: rInfo.tpkds[0].steam_app_id,
-                    revealed: 'is_gift' in rInfo.tpkds[0],
-                    selName: order[i]
-                };
+                var rInfo = info.content_choices[order[i]];
+                var tpkds;
+                if ('tpkds' in rInfo) {
+                    tpkds = rInfo.tpkds[0];
+                }
+                else if ('nested_choice_tpkds' in rInfo) {
+                    for (var platform in rInfo.nested_choice_tpkds) {
+                        if (platform.indexOf('_steam') > -1) {
+                            tpkds = rInfo.nested_choice_tpkds[platform][0];
+                            break;
+                        }
+                    }
+                }
+                else {
+                    tpkds = false;
+                }
+                if (tpkds) {
+                    content.push({
+                        title: rInfo.title,
+                        exclusive: tpkds.exclusive_countries,
+                        disallow: tpkds.disallowed_countries,
+                        rawName: tpkds.machine_name,
+                        appid: tpkds.steam_app_id,
+                        revealed: 'is_gift' in tpkds,
+                        selName: order[i]
+                    });
+                }
+                else {
+                    console.log('Error fetching info of ' + rInfo.title);
+                }
             }
             var out;
             var outputHTML = `<h3 class="content-choices-title">刮 Key 区<a style="padding-left: 20px; font-weight: initial; font-size: 16px; float: right; color: #169fe3;" href="" id="hckt_revealAll" onclick="return false;">刮开已选</a></h3><textarea id="hckt_revealArea" style="padding: 10px; width: calc(100% - 20px); min-height: 310px; background-color: #363c49; border: none; border-radius: 5px;">`;
