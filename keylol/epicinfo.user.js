@@ -9,7 +9,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_removeValue
-// @version      0.06
+// @version      0.07
 // @connect      www.epicgames.com
 // @connect      store-content.ak.epicgames.com
 // @icon         https://www.epicgames.com/favicon.ico
@@ -19,12 +19,12 @@
 (function () {
     function fixNamespace(namespace) {
         for (let ns in namespace) {
-            namespace[ns] = `product/${namespace[ns]}/home`;
+            namespace[ns] = `p/${namespace[ns]}/home`;
         }
         namespace['85189f7cf7a64f86aa6aa91d81d36c08'] = 'bundles/borderlands-the-handsome-collection';
         namespace['bd8a7e894699493fb21503837f7b66c5'] = 'bundles/shadowrun-collection';
-        namespace['4d1607defb8840cdb849d47d012b249b'] = ['product/lego-batman/home', 'product/lego-batman-2/home', 'product/lego-batman-3/home'];
-        namespace['86ce9e7a94704e8eb1f9dbe16310e701'] = ['product/batman-arkham-asylum/home', 'product/batman-arkham-city/home', 'product/batman-arkham-knight/home'];
+        namespace['4d1607defb8840cdb849d47d012b249b'] = ['p/lego-batman/home', 'p/lego-batman-2/home', 'p/lego-batman-3/home'];
+        namespace['86ce9e7a94704e8eb1f9dbe16310e701'] = ['p/batman-arkham-asylum/home', 'p/batman-arkham-city/home', 'p/batman-arkham-knight/home'];
         return namespace;
     }
     function get(page, lastCreatedAt) {
