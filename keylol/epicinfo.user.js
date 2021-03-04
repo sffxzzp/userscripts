@@ -1,5 +1,6 @@
 // ==UserScript==
 // @name         Epic Info
+// @author       sffxzzp
 // @namespace    https://github.com/sffxzzp
 // @description  快速匹配 Epic 游戏信息
 // @include      https://steamdb.keylol.com/sync
