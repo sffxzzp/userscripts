@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Humble Choice Key Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.14
+// @version      0.20
 // @description  Display Humble Choice region restriction infomation, and select game without reveal it's key, and reveal all selected keys.
 // @author       sffxzzp
 // @match        *://www.humblebundle.com/subscription/*
@@ -382,13 +382,16 @@
             for (var i=0;i<order.length;i++) {
                 var rInfo = info.content_choices[order[i]];
                 var tpkds;
+                var multikey = false;
                 if ('tpkds' in rInfo) {
                     tpkds = rInfo.tpkds[0];
                 }
                 else if ('nested_choice_tpkds' in rInfo) {
+                    multikey = true;
                     for (var platform in rInfo.nested_choice_tpkds) {
                         if (platform.indexOf('_steam') > -1) {
                             tpkds = rInfo.nested_choice_tpkds[platform][0];
+                            multikey = platform;
                             break;
                         }
                     }
@@ -404,7 +407,8 @@
                         rawName: tpkds.machine_name,
                         appid: tpkds.steam_app_id,
                         revealed: 'is_gift' in tpkds,
-                        selName: order[i]
+                        selName: order[i],
+                        multi: multikey
                     });
                 }
                 else {
@@ -436,7 +440,16 @@
             for (var j=0;j<content.length;j++) {
                 out = `<span style="color: #169fe3;">${content[j].title}</span>`;
                 if (choosed.indexOf(content[j].selName) < 0) {
-                    out += `<a class="hckt_select" style="float: right; color: #169fe3; margin-left: 20px;" href="" data="gamekey=${gameKey}&parent_identifier=${subname}&chosen_identifiers%5B%5D=${content[j].selName}&is_multikey_and_from_choice_modal=false" target="_blank">只选不刮</a>`
+                    var postdata = `gamekey=${gameKey}&parent_identifier=${subname}&chosen_identifiers%5B%5D=${content[j].selName}`;
+                    var multi, selClass = '';
+                    var selDes = '只选不刮';
+                    var color = '#169fe3';
+                    if (content[j].multi) {
+                        if (content[j].multi === true) { color = 'grey'; postdata = ''; selDes = '手动选择'; }
+                        else { selClass = 'class="hckt_select"'; multi = `gamekey=${gameKey}&parent_identifier=${content[j].selName}&chosen_identifiers%5B%5D=${content[j].multi}`; }
+                    }
+                    else { postdata += '&is_multikey_and_from_choice_modal=false'; }
+                    out += `<a ${selClass} style="float: right; color: ${color}; margin-left: 20px;" href="" data="${postdata}" multi="${multi}" target="_blank">${selDes}</a>`
                 }
                 else {
                     out += `<a style="float: right; color: #f18d22; margin-left: 20px;" href="javascript:;">已选择过</a>`;
@@ -468,7 +481,7 @@
                 node.onclick = function () {
                     var _node = this;
                     _node.onclick = function () {return false;}
-                    _node.innerHTML = '请稍等…'
+                    _node.innerHTML = '请稍等…';
                     util.xhr({
                         url: `https://www.humblebundle.com/humbler/choosecontent`,
                         method: 'post',
@@ -478,8 +491,29 @@
                     }).then(function (result) {
                         result = JSON.parse(result.body);
                         if (result.success) {
-                            _node.innerHTML = '已选择过';
-                            _node.setAttribute('style', 'float: right; color: #f18d22; margin-left: 20px;');
+                            if (_node.getAttribute('multi')) {
+                                util.xhr({
+                                    url: 'https://www.humblebundle.com/humbler/choosecontent',
+                                    method: 'post',
+                                    data: _node.getAttribute('multi'),
+                                    headers: {'CSRF-Prevention-Token': csrfToken},
+                                    xhr: true
+                                }).then(function (resultSec) {
+                                    resultSec = JSON.parse(resultSec.body);
+                                    if (resultSec.success) {
+                                        _node.innerHTML = '已选择过';
+                                        _node.setAttribute('style', 'float: right; color: #f18d22; margin-left: 20px;');
+                                    }
+                                    else {
+                                        _node.innerHTML = '请求失败';
+                                        _node.setAttribute('style', 'float: right; color: #red; margin-left: 20px;');
+                                    }
+                                });
+                            }
+                            else {
+                                _node.innerHTML = '已选择过';
+                                _node.setAttribute('style', 'float: right; color: #f18d22; margin-left: 20px;');
+                            }
                         }
                         else {
                             _node.innerHTML = '请求失败';
