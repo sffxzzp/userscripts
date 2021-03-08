@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Humble Choice Key Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.20
+// @version      0.21
 // @description  Display Humble Choice region restriction infomation, and select game without reveal it's key, and reveal all selected keys.
 // @author       sffxzzp
 // @match        *://www.humblebundle.com/subscription/*
@@ -441,15 +441,13 @@
                 out = `<span style="color: #169fe3;">${content[j].title}</span>`;
                 if (choosed.indexOf(content[j].selName) < 0) {
                     var postdata = `gamekey=${gameKey}&parent_identifier=${subname}&chosen_identifiers%5B%5D=${content[j].selName}`;
-                    var multi, selClass = '';
-                    var selDes = '只选不刮';
-                    var color = '#169fe3';
+                    var multi = '', selClass = 'class="hckt_select"', selDes = '只选不刮', color = '#169fe3';
                     if (content[j].multi) {
-                        if (content[j].multi === true) { color = 'grey'; postdata = ''; selDes = '手动选择'; }
-                        else { selClass = 'class="hckt_select"'; multi = `gamekey=${gameKey}&parent_identifier=${content[j].selName}&chosen_identifiers%5B%5D=${content[j].multi}`; }
+                        if (content[j].multi === true) { selClass = ''; color = 'grey'; postdata = ''; selDes = '手动选择'; }
+                        else { multi = `gamekey=${gameKey}&parent_identifier=${content[j].selName}&chosen_identifiers%5B%5D=${content[j].multi}`; }
                     }
                     else { postdata += '&is_multikey_and_from_choice_modal=false'; }
-                    out += `<a ${selClass} style="float: right; color: ${color}; margin-left: 20px;" href="" data="${postdata}" multi="${multi}" target="_blank">${selDes}</a>`
+                    out += `<a ${selClass} style="float: right; color: ${color}; margin-left: 20px;" href="javascript:;" data="${postdata}" multi="${multi}">${selDes}</a>`
                 }
                 else {
                     out += `<a style="float: right; color: #f18d22; margin-left: 20px;" href="javascript:;">已选择过</a>`;
@@ -478,47 +476,45 @@
             var insertInfo = util.createElement({node: "div", content: {style: "background-color: #454c5e; padding: 0.25em 1.5em;"}, html: outputHTML});
             targetNode.insertBefore(insertInfo, targetPos);
             document.querySelectorAll('.hckt_select').forEach(function (node) {
-                node.onclick = function () {
+                node.onclick = async function () {
                     var _node = this;
                     _node.onclick = function () {return false;}
                     _node.innerHTML = '请稍等…';
-                    util.xhr({
+                    var result = await util.xhr({
                         url: `https://www.humblebundle.com/humbler/choosecontent`,
                         method: 'post',
                         data: _node.getAttribute('data'),
                         headers: {'CSRF-Prevention-Token': csrfToken},
                         xhr: true
-                    }).then(function (result) {
-                        result = JSON.parse(result.body);
-                        if (result.success) {
-                            if (_node.getAttribute('multi')) {
-                                util.xhr({
-                                    url: 'https://www.humblebundle.com/humbler/choosecontent',
-                                    method: 'post',
-                                    data: _node.getAttribute('multi'),
-                                    headers: {'CSRF-Prevention-Token': csrfToken},
-                                    xhr: true
-                                }).then(function (resultSec) {
-                                    resultSec = JSON.parse(resultSec.body);
-                                    if (resultSec.success) {
-                                        _node.innerHTML = '已选择过';
-                                        _node.setAttribute('style', 'float: right; color: #f18d22; margin-left: 20px;');
-                                    }
-                                    else {
-                                        _node.innerHTML = '请求失败';
-                                        _node.setAttribute('style', 'float: right; color: #red; margin-left: 20px;');
-                                    }
-                                });
-                            }
-                            else {
+                    });
+                    result = JSON.parse(result.body);
+                    if (result.success) {
+                        if (_node.getAttribute('multi')) {
+                            var resultSec = await util.xhr({
+                                url: 'https://www.humblebundle.com/humbler/choosecontent',
+                                method: 'post',
+                                data: _node.getAttribute('multi'),
+                                headers: {'CSRF-Prevention-Token': csrfToken},
+                                xhr: true
+                            });
+                            resultSec = JSON.parse(resultSec.body);
+                            if (resultSec.success) {
                                 _node.innerHTML = '已选择过';
                                 _node.setAttribute('style', 'float: right; color: #f18d22; margin-left: 20px;');
                             }
+                            else {
+                                _node.innerHTML = '请求失败';
+                                _node.setAttribute('style', 'float: right; color: #red; margin-left: 20px;');
+                            }
                         }
                         else {
-                            _node.innerHTML = '请求失败';
+                            _node.innerHTML = '已选择过';
+                            _node.setAttribute('style', 'float: right; color: #f18d22; margin-left: 20px;');
                         }
-                    });
+                    }
+                    else {
+                        _node.innerHTML = '请求失败';
+                    }
                     return false;
                 }
             });
