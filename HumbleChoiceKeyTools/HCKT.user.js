@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Humble Choice Key Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.21
+// @version      0.22
 // @description  Display Humble Choice region restriction infomation, and select game without reveal it's key, and reveal all selected keys.
 // @author       sffxzzp
 // @match        *://www.humblebundle.com/subscription/*
@@ -267,9 +267,7 @@
             ZM: '赞比亚',
             ZW: '津巴布韦',
         };
-        common.getCountryByCode = function (code) {
-            return code.map(attr => common.countryMap[attr]).reduce((a, b) => `${a}、${b}`);
-        };
+        common.getCountryByCode = function (code) { return code.map(attr => common.countryMap[attr]).reduce((a, b) => `${a}、${b}`); };
         return common;
     })();
     var util = (function () {
@@ -335,18 +333,10 @@
     })();
     var hckt = (function () {
         function hckt() {};
-        hckt.prototype.getKey = function (textarea, title, data) {
-            util.xhr({
-                url: 'https://www.humblebundle.com/humbler/redeemkey',
-                method: 'post',
-                data: data,
-                xhr: true
-            }).then(function (result) {
-                var res = JSON.parse(result.body);
-                if (res.success) {
-                    textarea.value += `${title}    ${res.key}\n`;
-                }
-            });
+        hckt.prototype.getKey = async function (textarea, title, data) {
+            var result = await util.xhr({ url: 'https://www.humblebundle.com/humbler/redeemkey', method: 'post', data: data, xhr: true });
+            var res = JSON.parse(result.body);
+            if (res.success) { textarea.value += `${title}    ${res.key}\n`; }
         };
         hckt.prototype.getCSRFToken = function (htmlstr) {
             return (new DOMParser()).parseFromString(htmlstr, 'text/html').querySelector('.csrftoken').getAttribute('value');
@@ -480,23 +470,11 @@
                     var _node = this;
                     _node.onclick = function () {return false;}
                     _node.innerHTML = '请稍等…';
-                    var result = await util.xhr({
-                        url: `https://www.humblebundle.com/humbler/choosecontent`,
-                        method: 'post',
-                        data: _node.getAttribute('data'),
-                        headers: {'CSRF-Prevention-Token': csrfToken},
-                        xhr: true
-                    });
+                    var result = await util.xhr({ url: `https://www.humblebundle.com/humbler/choosecontent`, method: 'post', data: _node.getAttribute('data'), headers: {'CSRF-Prevention-Token': csrfToken}, xhr: true });
                     result = JSON.parse(result.body);
                     if (result.success) {
                         if (_node.getAttribute('multi')) {
-                            var resultSec = await util.xhr({
-                                url: 'https://www.humblebundle.com/humbler/choosecontent',
-                                method: 'post',
-                                data: _node.getAttribute('multi'),
-                                headers: {'CSRF-Prevention-Token': csrfToken},
-                                xhr: true
-                            });
+                            var resultSec = await util.xhr({ url: 'https://www.humblebundle.com/humbler/choosecontent', method: 'post', data: _node.getAttribute('multi'), headers: {'CSRF-Prevention-Token': csrfToken}, xhr: true });
                             resultSec = JSON.parse(resultSec.body);
                             if (resultSec.success) {
                                 _node.innerHTML = '已选择过';
@@ -547,18 +525,14 @@
                 return false;
             }
         };
-        hckt.prototype.run = function () {
+        hckt.prototype.run = async function () {
             var _this = this;
-            util.xhr({
-                url: location.href,
-                xhr: true
-            }).then(function (result) {
-                var rInfo = (new DOMParser()).parseFromString(result.body, "text/html");
-                rInfo = rInfo.querySelector('#webpack-subscriber-hub-data') || rInfo.querySelector('#webpack-monthly-product-data');
-                if (!rInfo) {return;}
-                rInfo = JSON.parse(rInfo.innerHTML);
-                _this.showInfo(rInfo);
-            }).catch(console.log);
+            var result = await util.xhr({ url: location.href, xhr: true });
+            var rInfo = (new DOMParser()).parseFromString(result.body, "text/html");
+            rInfo = rInfo.querySelector('#webpack-subscriber-hub-data') || rInfo.querySelector('#webpack-monthly-product-data');
+            if (!rInfo) {return;}
+            rInfo = JSON.parse(rInfo.innerHTML);
+            _this.showInfo(rInfo);
         };
         return hckt;
     })();
