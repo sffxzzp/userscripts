@@ -71,7 +71,7 @@
         ksd.prototype.clearUnused = function () {
             var nameList = JSON.parse(localStorage.getItem('ksd')) || {};
             for (let item in nameList) {
-                if (nameList[item].last < (new Date()).getTime() - 86400000) {
+                if (nameList[item].last < (new Date()).getTime() - 604800000) {
                     delete nameList[item];
                 }
             };
@@ -86,7 +86,6 @@
         ksd.prototype.run = function () {
             var _this = this;
             var stbar = document.querySelectorAll('.steam_connect_user_bar') || [];
-            _this.clearUnused();
             stbar.forEach(function (node) {
                 _this.addSteamID(node);
             });
@@ -101,6 +100,7 @@
                 }
             });
             observer.observe(postlist, { childList: true, subtree: true });
+            _this.clearUnused();
         };
         return ksd;
     })();
