@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Keylol SteamID Display
 // @namespace    https://github.com/sffxzzp
-// @version      0.06
+// @version      0.07
 // @description  Display hided SteamID in keylol's steam connect bar
 // @author       sffxzzp
 // @match        *://keylol.com/t*
@@ -68,6 +68,14 @@
                 return name;
             }
         };
+        ksd.prototype.clearUnused = function () {
+            var nameList = JSON.parse(localStorage.getItem('ksd')) || {};
+            for (let item in nameList) {
+                if (nameList[item].last < (new Date()).getTime() - 86400000) {
+                    delete nameList[item];
+                }
+            };
+        };
         ksd.prototype.addSteamID = async function (node) {
             if (node.innerHTML.indexOf('社区昵称') < 0) {
                 var steam64id = node.querySelector('.steam_connect_user_bar_link_repcn').href.split('profiles/')[1];
@@ -78,6 +86,7 @@
         ksd.prototype.run = function () {
             var _this = this;
             var stbar = document.querySelectorAll('.steam_connect_user_bar') || [];
+            _this.clearUnused();
             stbar.forEach(function (node) {
                 _this.addSteamID(node);
             });
