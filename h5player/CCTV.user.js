@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HTML5 on CCTV
 // @namespace    https://github.com/sffxzzp
-// @version      0.17
+// @version      0.18
 // @description  Replace Flash Player with HTML5 Player on tv.cctv.com
 // @author       sffxzzp
 // @include      /^https?://tv.cctv.com/\d*/\d*/\d*/VIDE.*.shtml*/
@@ -9,7 +9,8 @@
 // @require      https://cdn.jsdelivr.net/npm/hls.js/dist/hls.min.js
 // @icon         https://tv.cctv.com/favicon.ico
 // @connect      vdn.apps.cntv.cn
-// @connect      hls.cntv.myalicdn.com
+// @connect      hls.cntv.myhwcdn.cn
+// @connect      newcntv.qcloudcdn.com
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @grant        unsafeWindow
@@ -114,18 +115,18 @@
                 type: 'json'
             }).then(function (res) {
                 var url = res.body.hls_url.replace('://', '/').split('/');
-                url = `${url[0]}://hls.cntv.myalicdn.com/${url.slice(2).join('/')}`;
+                url = `${url[0]}://newcntv.qcloudcdn.com/${url.slice(2).join('/')}`;
                 util.xhr({
                     url: url
                 }).then(function (res) {
                     var vlist = res.body.split('\n');
                     var m3u8 = [];
                     vlist.forEach(function (v) {
-                        if (v.indexOf('/200.m3u8')>-1) {m3u8.push({name: '流畅', url: 'https://hls.cntv.myalicdn.com'+v, type: 'hls'});}
-                        else if (v.indexOf('/450.m3u8')>-1) {m3u8.push({name: '低清', url: 'https://hls.cntv.myalicdn.com'+v, type: 'hls'});}
-                        else if (v.indexOf('/850.m3u8')>-1) {m3u8.push({name: '标清', url: 'https://hls.cntv.myalicdn.com'+v, type: 'hls'});}
-                        else if (v.indexOf('/1200.m3u8')>-1) {m3u8.push({name: '高清', url: 'https://hls.cntv.myalicdn.com'+v, type: 'hls'});}
-                        else if (v.indexOf('/2000.m3u8')>-1) {m3u8.push({name: '超清', url: 'https://hls.cntv.myalicdn.com'+v, type: 'hls'});}
+                        if (v.indexOf('/200.m3u8')>-1) {m3u8.push({name: '流畅', url: 'https://newcntv.qcloudcdn.com'+v, type: 'hls'});}
+                        else if (v.indexOf('/450.m3u8')>-1) {m3u8.push({name: '低清', url: 'https://newcntv.qcloudcdn.com'+v, type: 'hls'});}
+                        else if (v.indexOf('/850.m3u8')>-1) {m3u8.push({name: '标清', url: 'https://newcntv.qcloudcdn.com'+v, type: 'hls'});}
+                        else if (v.indexOf('/1200.m3u8')>-1) {m3u8.push({name: '高清', url: 'https://newcntv.qcloudcdn.com'+v, type: 'hls'});}
+                        else if (v.indexOf('/2000.m3u8')>-1) {m3u8.push({name: '超清', url: 'https://newcntv.qcloudcdn.com'+v, type: 'hls'});}
                     });
                     _this.addPlayer(m3u8);
                 });
