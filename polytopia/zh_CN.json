@@ -737,7 +737,7 @@
   "throne.google.in": "登录",
 
   "consent.approval.title": "欢迎来到 Polytopia！",
-  "consent.approval.info": "要使用使用统计数据改善 Polytopia，并存储您的高分和设置，我们需要您的批准才能访问某些个人数据。\您可以阅读更多关于我们在<u><a href='{0}'>隐私政策中收集的数据的信息。\n（您可以随时在“王座室”中撤销您的批准）",
+  "consent.approval.info": "要使用使用统计数据改善 Polytopia，并存储您的高分和设置，我们需要您的批准才能访问某些个人数据。\n您可以阅读更多关于我们在<u><a href='{0}'>隐私政策中收集的数据的信息。\n（您可以随时在“王座室”中撤销您的批准）",
   "consent.approve": "批准",
   "consent.deny": "否认",
   "consent.enabled": "启用个人资料",
