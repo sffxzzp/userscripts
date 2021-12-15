@@ -973,5 +973,5 @@
   "friendlist.friendshipstate.accepted": "朋友的请求被接受。你们都是朋友。",
   "friendlist.friendshipstate.sentrequest": "已发送好友请求。等待回应。",
   "friendlist.friendshipstate.receivedrequest": "{0} 已向您发送好友请求。如果您接受，您可以邀请对方参加多人游戏。",
-  "friendlist.friendshipstate.rejected": "好友请求被拒绝。",
+  "friendlist.friendshipstate.rejected": "好友请求被拒绝。"
 }
