@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Humble Choice Key Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.24
+// @version      0.25
 // @description  Display Humble Choice region restriction infomation, and select game without reveal it's key, and reveal all selected keys.
 // @author       sffxzzp
 // @match        *://*.humblebundle.com/subscription/*
+// @match        *://*.humblebundle.com/membership/*
 // @icon         https://humblebundle-a.akamaihd.net/static/hashed/46cf2ed85a0641bfdc052121786440c70da77d75.png
 // @grant        GM_xmlhttpRequest
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/HumbleChoiceKeyTools/HCKT.user.js
@@ -357,21 +358,15 @@
                 }
                 choosed = info.contentChoicesMade[subname].choices_made;
             }
-            var gameKey = info.gamekey;
-            for (sName in info.contentChoiceData) {
-                if (sName.indexOf('initial')>-1 && sName != 'initial-without-order') {
-                    subname = sName;
-                    break;
-                }
-            }
             if (subname == '') {
                 console.log('Error fetching subscribe type.');
             }
-            info = info.contentChoiceData[subname];
+            var gameKey = info.gamekey;
+            info = info.contentChoiceData;
             var order = info.display_order;
             var content = [];
             for (var i=0;i<order.length;i++) {
-                var rInfo = info.content_choices[order[i]];
+                var rInfo = info.game_data[order[i]];
                 var tpkds;
                 var multikey = false;
                 if ('tpkds' in rInfo) {
