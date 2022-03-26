@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Keylol Markdown Editor
 // @namespace    https://github.com/
-// @version      0.12
+// @version      0.13
 // @description  Replace keylol.com default editor to a markdown editor which will transform markdown to bbcode.
 // @author       sffxzzp
 // @include      /https?://(dev\.)?keylol\.com/forum\.php\?mod=post&action=(newthread|edit|reply).*?/
@@ -9,6 +9,7 @@
 // @require      https://cdn.jsdelivr.net/npm/marked/marked.min.js
 // @grant        unsafeWindow
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/other/stcnmdeditor.user.js
+// @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/other/stcnmdeditor.user.js
 // ==/UserScript==
 
 (function() {
@@ -47,7 +48,7 @@
             this.renderer.list = function (body, ordered, start) {return `[list${(ordered == true) ? '=1' : ''}]\n${body}[/list]`};
             this.renderer.listitem = function (text, task, checked) {return `[*]${text}\n`};
             this.renderer.checkbox = function (checked) {return `[${checked ? '√' : '×'}] `};
-            this.renderer.paragraph = function (text) {return `${util.entityToString(text)}\n`};
+            this.renderer.paragraph = function (text) {return `${util.entityToString(text)}\n\n`};
             this.renderer.table = function (header, body) {return `[table]\n${header}${body}[/table]\n`};
             this.renderer.tablerow = function (content) {return `[tr]${content}[/tr]\n`};
             this.renderer.tablecell = function (content, flags) {
@@ -61,6 +62,10 @@
             this.renderer.del = function (text) {return `[s]${text}[/s]`};
             this.renderer.link = function (href, title, text) {return `[url=${href}]${text}[/url]`};
             this.renderer.image = function (href, title, text) {return `[img]${href}[/img]`};
+            marked.use({
+                renderer: this.renderer,
+                breaks: true
+            });
         };
         kme.prototype.remarkedTable = function (text) {
             let table = /\[table\]([\s\S]*?)\[\/table\]/g.exec(text);
@@ -184,7 +189,7 @@
                 oriIframe.onscroll = () => {};
             };
             mdEditor.onkeyup = function () {
-                let output = marked(mdEditor.value, {renderer: _this.renderer});
+                let output = marked.parse(mdEditor.value);
                 oriEditor.value = unsafeWindow.trim(output);
                 _this.scrollSync(mdEditor, oriEditor, oriIframe);
             };
