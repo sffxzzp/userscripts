@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         HTML5 on CCTV
 // @namespace    https://github.com/sffxzzp
-// @version      0.18
+// @version      0.19
 // @description  Replace Flash Player with HTML5 Player on tv.cctv.com
 // @author       sffxzzp
 // @include      /^https?://tv.cctv.com/\d*/\d*/\d*/VIDE.*.shtml*/
-// @require      https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js
-// @require      https://cdn.jsdelivr.net/npm/hls.js/dist/hls.min.js
+// @require      https://unpkg.com/dplayer/dist/DPlayer.min.js
+// @require      https://unpkg.com/hls.js/dist/hls.js
 // @icon         https://tv.cctv.com/favicon.ico
 // @connect      vdn.apps.cntv.cn
 // @connect      hls.cntv.myhwcdn.cn
