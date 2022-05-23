@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         HTML5 on kankanews
 // @namespace    https://github.com/sffxzzp
-// @version      0.02
+// @version      0.03
 // @description  Replace Flash Player with HTML5 Player on www.kankanews.com
 // @author       sffxzzp
 // @include      /^https?://.*?.kankanews.com/a/.*?/\d*.shtml/
-// @require      https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js
-// @require      https://cdn.jsdelivr.net/npm/hls.js/dist/hls.min.js
+// @require      https://unpkg.com/dplayer/dist/DPlayer.min.js
+// @require      https://unpkg.com/hls.js/dist/hls.js
 // @icon         https://www.kankanews.com/favicon.ico
 // @connect      vapi.kankanews.com
 // @grant        GM_xmlhttpRequest
