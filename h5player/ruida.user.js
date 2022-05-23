@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         HTML5 on Ruida
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
+// @version      0.03
 // @description  Replace Flash Player with HTML5 Player on elearning.ruidaedu.com and elearning.ruidakaoyan.com
 // @author       sffxzzp
-// @include      /^https?:\/\/elearning\.ruida(edu|kaoyan)\.com\/xcware\/video\/videoPlay\/videoPlay.*?.shtm.*/
+// @include      /^https?:\/\/elearning\.ruida(edu|kaoyan)\.com\/xcware\/video\/(h5video|videoPlay)\/videoPlay.*?.shtm.*/
 // @require      https://unpkg.com/dplayer/dist/DPlayer.min.js
 // @require      https://unpkg.com/hls.js/dist/hls.js
 // @require      https://blueimp.github.io/JavaScript-MD5/js/md5.js
@@ -13,6 +13,7 @@
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/h5player/ruida.user.js
+// @run-at       document-end
 // ==/UserScript==
 
 (function() {
@@ -91,6 +92,7 @@
             }
         };
         h5onRuida.prototype.addPlayer = function (m3u8, videoRefID) {
+            document.querySelector('video').pause();
             var container = document.querySelector('.videoBox');
             util.setElement({node: container, html: '<div id="dplayer" style="width: 100%; height: 100%;"></div>'});
             var pip = document.pictureInPictureEnabled ? [{text: '画中画模式', click: function () {document.querySelector('.dplayer-video').requestPictureInPicture().catch(console.log);}}] : [];
@@ -128,9 +130,10 @@
             GM_addStyle('#header {z-index: 0 !important;}');
         };
         h5onRuida.prototype.run = function () {
+            var _this = this;
             this.initStyle();
             this.setCata();
-            this.init();
+            setTimeout(function () {_this.init()}, 2000);
         };
         h5onRuida.prototype.init = async function (vid) {
             if (vid==undefined) {
