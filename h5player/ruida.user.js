@@ -5,9 +5,9 @@
 // @description  Replace Flash Player with HTML5 Player on elearning.ruidaedu.com and elearning.ruidakaoyan.com
 // @author       sffxzzp
 // @include      /^https?:\/\/elearning\.ruida(edu|kaoyan)\.com\/xcware\/video\/videoPlay\/videoPlay.*?.shtm.*/
-// @require      https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js
-// @require      https://cdn.jsdelivr.net/npm/hls.js/dist/hls.min.js
-// @require      https://cdn.jsdelivr.net/gh/blueimp/JavaScript-MD5/js/md5.min.js
+// @require      https://unpkg.com/dplayer/dist/DPlayer.min.js
+// @require      https://unpkg.com/hls.js/dist/hls.js
+// @require      https://blueimp.github.io/JavaScript-MD5/js/md5.js
 // @icon         https://www.ruidaedu.com/core/favicon.ico
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
