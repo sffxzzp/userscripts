@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Keylol Markdown Editor
 // @namespace    https://github.com/
-// @version      0.13
+// @version      0.14
 // @description  Replace keylol.com default editor to a markdown editor which will transform markdown to bbcode.
 // @author       sffxzzp
 // @include      /https?://(dev\.)?keylol\.com/forum\.php\?mod=post&action=(newthread|edit|reply).*?/
 // @icon         https://keylol.com/favicon.ico
-// @require      https://cdn.jsdelivr.net/npm/marked/marked.min.js
+// @require      https://unpkg.com/marked/marked.min.js
 // @grant        unsafeWindow
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/other/stcnmdeditor.user.js
 // @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/other/stcnmdeditor.user.js
