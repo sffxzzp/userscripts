@@ -11,7 +11,7 @@
 // @grant        GM_setValue
 // @grant        GM_deleteValue
 // @connect      store.steampowered.com
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/steamwishlistchecker.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/steamwishlistchecker.user.js
 // ==/UserScript==
 
 (function() {

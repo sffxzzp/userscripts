@@ -8,7 +8,7 @@
 // @icon         http://verycd.gdajie.com/favicon.ico
 // @grant        GM_xmlhttpRequest
 // @connect      verycd.gdajie.com
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/gdajie.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/gdajie.user.js
 // ==/UserScript==
 
 (function() {

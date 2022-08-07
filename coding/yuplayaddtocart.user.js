@@ -7,7 +7,7 @@
 // @match        *://yuplay.ru/product/*
 // @icon         https://yuplay.ru/img/img/favicon.ico
 // @connect      steamdb.info
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/yuplayaddtocart.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/yuplayaddtocart.user.js
 // ==/UserScript==
 
 (function() {

@@ -7,7 +7,7 @@
 // @match        *://keylol.com/t*
 // @match        *://keylol.com/forum.php?mod=viewthread&tid=*
 // @icon         https://keylol.com/favicon.ico
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/keylolmassat.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/keylolmassat.user.js
 // ==/UserScript==
 
 (function() {

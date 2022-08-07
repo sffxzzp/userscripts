@@ -8,7 +8,7 @@
 // @match        *://dev.keylol.com/admin.php?*
 // @icon         https://keylol.com/favicon.ico
 // @grant        GM_xmlhttpRequest
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/keyloladmintool.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/keyloladmintool.user.js
 // ==/UserScript==
 
 (function() {

@@ -7,7 +7,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @icon         https://keylol.com/favicon.ico
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/stcnfilter.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/stcnfilter.user.js
 // ==/UserScript==
 
 (function() {

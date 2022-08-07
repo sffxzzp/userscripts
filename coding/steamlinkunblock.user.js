@@ -8,7 +8,7 @@
 // @match        *://steamcommunity.com/app/*/reviews/*
 // @match        *://store.steampowered.com/app/*
 // @match        *://steamcommunity.com/*/recommended/*
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/steamlinkunblock.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/steamlinkunblock.user.js
 // ==/UserScript==
 
 (function() {

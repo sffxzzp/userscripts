@@ -7,7 +7,7 @@
 // @match        *://store.steampowered.com/lny2019/rewards
 // @icon         https://store.steampowered.com/favicon.ico
 // @grant        unsafeWindow
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/steam2019rewards.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/steam2019rewards.user.js
 // ==/UserScript==
 
 (function() {

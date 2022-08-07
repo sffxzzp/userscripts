@@ -6,7 +6,7 @@
 // @author       sffxzzp
 // @include      /https?:\/\/(www\.)?weibo\.com\/p\/\d*?\/(home|manage).*/
 // @icon         https://keylol.com/favicon.ico
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/keylolweibo.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/keylolweibo.user.js
 // @grant        none
 // ==/UserScript==
 

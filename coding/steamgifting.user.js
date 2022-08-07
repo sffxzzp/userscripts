@@ -6,7 +6,7 @@
 // @author       sffxzzp
 // @match        *://store.steampowered.com/checkout/sendgift/*
 // @icon         https://store.steampowered.com/favicon.ico
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/steamgifting.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/steamgifting.user.js
 // ==/UserScript==
 
 (function() {

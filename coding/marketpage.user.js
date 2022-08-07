@@ -9,7 +9,7 @@
 // @match        *://steamcommunity.com/market/listings/*/*
 // @match        *://steamcommunity.com/market/search*
 // @icon         https://store.steampowered.com/favicon.ico
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/marketpage.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/marketpage.user.js
 // ==/UserScript==
 
 (function() {

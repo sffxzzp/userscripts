@@ -11,7 +11,7 @@
 // @icon         http://tingshen.court.gov.cn/static/img/favorite.ico
 // @connect      player.videoincloud.com
 // @grant        GM_xmlhttpRequest
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/tingshen.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/tingshen.user.js
 // ==/UserScript==
 
 (function() {

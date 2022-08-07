@@ -6,7 +6,7 @@
 // @icon         http://www.indiegala.com/favicon.ico
 // @author       sffxzzp
 // @match        https://www.indiegala.com/gift*
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/IG_Gift_AutoDiscoverer.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/IG_Gift_AutoDiscoverer.user.js
 // ==/UserScript==
 
 var func1 = (

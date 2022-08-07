@@ -6,7 +6,7 @@
 // @author       sffxzzp
 // @match        *://store.steampowered.com/wishlist/*
 // @icon         https://store.steampowered.com/favicon.ico
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/steamwishlistcopy.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/steamwishlistcopy.user.js
 // ==/UserScript==
 
 (function() {

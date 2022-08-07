@@ -6,7 +6,7 @@
 // @author       sffxzzp
 // @match        *://steamcommunity.com/sharedfiles/editguide/?appid=*
 // @icon         https://store.steampowered.com/favicon.ico
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/guidefix.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/guidefix.user.js
 // ==/UserScript==
 
 (function() {

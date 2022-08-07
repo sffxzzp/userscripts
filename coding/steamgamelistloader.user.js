@@ -8,7 +8,7 @@
 // @icon         https://store.steampowered.com/favicon.ico
 // @grant        unsafeWindow
 // @run-at       document-body
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/steamgamelistloader.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/steamgamelistloader.user.js
 // ==/UserScript==
 
 (function () {

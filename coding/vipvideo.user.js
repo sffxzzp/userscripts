@@ -23,7 +23,7 @@
 // @match        http://v.huya.com/play/*
 // @match        http://v.pptv.com/show/*
 // @icon         https://api.47ks.com/favicon.ico
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/vipvideo.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/vipvideo.user.js
 // ==/UserScript==
 
 (function() {

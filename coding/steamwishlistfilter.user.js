@@ -7,7 +7,7 @@
 // @match        *://store.steampowered.com/wishlist/*
 // @icon         https://store.steampowered.com/favicon.ico
 // @connect      store.steampowered.com
-// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/steam/steamwishlistfilter.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/steamwishlistfilter.user.js
 // @grant        unsafeWindow
 // ==/UserScript==
 

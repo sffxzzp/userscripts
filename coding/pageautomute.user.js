@@ -5,7 +5,7 @@
 // @description  Mute all audio and video elements when page lost focus, and unmute when get focus again.
 // @author       sffxzzp
 // @include      *
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/pageautomute.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/pageautomute.user.js
 // ==/UserScript==
 
 (function() {

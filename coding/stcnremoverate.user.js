@@ -6,7 +6,7 @@
 // @author       sffxzzp
 // @include      /https?:\/\/(dev\.)?keylol\.com\/(t\d*.*|forum.php?mod=viewthread&tid=\d*)/
 // @icon         https://keylol.com/favicon.ico
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/stcnremoverate.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/stcnremoverate.user.js
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
 // ==/UserScript==

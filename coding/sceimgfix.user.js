@@ -6,7 +6,7 @@
 // @author       sffxzzp
 // @match        *://www.steamcardexchange.net/index.php?gamepage-appid-*
 // @icon         http://www.steamcardexchange.net/include/design/img/favicon_blue_small.png
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/sceimgfix.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/sceimgfix.user.js
 // ==/UserScript==
 
 (function() {

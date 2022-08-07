@@ -8,7 +8,7 @@
 // @icon         https://store.steampowered.com/favicon.ico
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
-// @updateURL    https://sffxzzp.coding.net/p/userscripts/d/userscripts/git/raw/master/invboostergems.user.js
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/invboostergems.user.js
 // ==/UserScript==
 
 (function() {
