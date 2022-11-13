@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Keylol SteamID Display
 // @namespace    https://github.com/sffxzzp
-// @version      0.07
+// @version      0.09
 // @description  Display hided SteamID in keylol's steam connect bar
 // @author       sffxzzp
 // @match        *://keylol.com/t*
@@ -11,6 +11,7 @@
 // @icon         https://keylol.com/favicon.ico
 // @grant        GM_xmlhttpRequest
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/keylol/stcnsteamid.user.js
+// @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/keylol/stcnsteamid.user.js
 // ==/UserScript==
 
 (function() {
@@ -50,7 +51,7 @@
         ksd.prototype.getNameFromSteam64ID = async function (steam64id) {
             var nameList = JSON.parse(localStorage.getItem('ksd')) || {};
             var nameItem = nameList[steam64id];
-            if (nameItem && nameItem.last < (new Date()).getTime() - 86400000) {
+            if (nameItem && nameItem.last > (new Date()).getTime() - 86400000) {
                 return nameItem.name;
             }
             else {
