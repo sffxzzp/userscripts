@@ -1,13 +1,15 @@
 // ==UserScript==
 // @name         Keylol Admin Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.03
+// @version      0.04
 // @description  Add a fast way to edit user permissions.
 // @author       sffxzzp
 // @match        *://keylol.com/admin.php?*
-// @match        *://dev.keylol.com/admin.php?*
+// @match        *://keylol.com/t*
+// @match        *://keylol.com/forum.php?mod=viewthread*
 // @icon         https://keylol.com/favicon.ico
 // @grant        GM_xmlhttpRequest
+// @grant        GM_openInTab
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/keyloladmintool.user.js
 // ==/UserScript==
 
@@ -140,9 +142,55 @@
                 setTimeout(function () {_this.addPanel()}, 500);
             }
         };
+        kat.prototype.setTradePermission = function (url, data) {
+            return new Promise((resolve, reject) => {
+                var xhr = new XMLHttpRequest();
+                xhr.open("post", url, true);
+                xhr.setRequestHeader("content-type", "application/x-www-form-urlencoded");
+                xhr.responseType = "";
+                xhr.timeout = 3e4;
+                xhr.onload = function(ev) {
+                    var evt = ev.target;
+                    resolve(evt.response);
+                };
+                xhr.onerror = reject;
+                xhr.ontimeout = reject;
+                xhr.send(data);
+            });
+        };
+        kat.prototype.banTrade = async function (btn) {
+            var uid = btn.getAttribute('data-uid');
+            var html = await this.setTradePermission('https://keylol.com/admin.php?action=index');
+            var formhash = (new DOMParser()).parseFromString(html, 'text/html').querySelector('input[name=formhash]').value || '';
+            if (formhash == '') {
+                alert('后台尚未登录，请先登录');
+                GM_openInTab('https://keylol.com/admin.php', false);
+            }
+            await this.setTradePermission(`https://keylol.com/admin.php?action=members&operation=access&uid=${uid}`, `formhash=${formhash}&scrolltop=&anchor=&addfid=201&allowviewnew=-1&allowpostnew=-1&allowreplynew=-1&allowgetattachnew=-1&allowgetimagenew=-1&allowpostattachnew=-1&allowpostimagenew=-1&accesssubmit=提交`);
+            await this.setTradePermission(`https://keylol.com/admin.php?action=members&operation=access&uid=${uid}`, `formhash=${formhash}&scrolltop=&anchor=&addfid=271&allowviewnew=0&allowpostnew=0&allowreplynew=-1&allowgetattachnew=0&allowgetimagenew=0&allowpostattachnew=0&allowpostimagenew=0&accesssubmit=提交`);
+            GM_openInTab(`https://keylol.com/admin.php?action=members&operation=access&uid=${uid}`, false);
+        };
+        kat.prototype.addButton = function () {
+            var _this = this;
+            var postlist = document.getElementById('postlist');
+            for (var i=0; i<postlist.children.length; i++) {
+                var post = postlist.children[i];
+                if (post.id.substr(0, 5) == "post_") {
+                    var uid = post.querySelector('div[id^=post_] div.authi > a').getAttribute('href').substr(5);
+                    var targetBar = post.getElementsByClassName("pob")[0].children[1];
+                    var linkz = util.createElement({node: "a",content: {href: "javascript:;", "data-uid": uid}, html: "禁用交易区权限"});
+                    linkz.onclick = function () {
+                        _this.banTrade(this);
+                    };
+                    targetBar.insertBefore(linkz, targetBar.children[0]);
+                }
+            }
+        };
         kat.prototype.run = function () {
             if (location.href.indexOf('action=members&operation=access') > -1) {
                 this.addPanel();
+            } else {
+                this.addButton();
             }
         };
         return kat;
