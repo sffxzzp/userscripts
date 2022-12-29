@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Keylol Admin Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.04
+// @version      0.05
 // @description  Add a fast way to edit user permissions.
 // @author       sffxzzp
 // @match        *://keylol.com/admin.php?*
@@ -161,11 +161,12 @@
         kat.prototype.banTrade = async function (btn) {
             var uid = btn.getAttribute('data-uid');
             var html = await this.setTradePermission('https://keylol.com/admin.php?action=index');
-            var formhash = (new DOMParser()).parseFromString(html, 'text/html').querySelector('input[name=formhash]').value || '';
-            if (formhash == '') {
+            var formhash = (new DOMParser()).parseFromString(html, 'text/html').querySelector('input[name=formhash]') || null;
+            if (formhash == null) {
                 alert('后台尚未登录，请先登录');
                 GM_openInTab('https://keylol.com/admin.php', false);
             }
+            formhash = formhash.value;
             await this.setTradePermission(`https://keylol.com/admin.php?action=members&operation=access&uid=${uid}`, `formhash=${formhash}&scrolltop=&anchor=&addfid=201&allowviewnew=-1&allowpostnew=-1&allowreplynew=-1&allowgetattachnew=-1&allowgetimagenew=-1&allowpostattachnew=-1&allowpostimagenew=-1&accesssubmit=提交`);
             await this.setTradePermission(`https://keylol.com/admin.php?action=members&operation=access&uid=${uid}`, `formhash=${formhash}&scrolltop=&anchor=&addfid=271&allowviewnew=0&allowpostnew=0&allowreplynew=-1&allowgetattachnew=0&allowgetimagenew=0&allowpostattachnew=0&allowpostimagenew=0&accesssubmit=提交`);
             GM_openInTab(`https://keylol.com/admin.php?action=members&operation=access&uid=${uid}`, false);
