@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Emoticon Larger
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
+// @version      0.02
 // @description  protect your eyesight
 // @author       sffxzzp
 // @icon         https://store.steampowered.com/favicon.ico
@@ -30,7 +30,7 @@
         });
         observer.observe(bodyobs, { childList: true, subtree: true });
     } else {
-        GM_addStyle('.emoticon_popup_content .emoticon_option { line-height: 48px !important; height: 48px !important; width: 58px !important; } img.emoticon { height: 48px !important; width: 48px !important; }');
+        GM_addStyle('.emoticon_popup_content .emoticon_option { line-height: 48px !important; height: 48px !important; width: 58px !important; } .emoticon_option > img.emoticon { height: 48px !important; width: 48px !important; }');
         let bodyobs = document.getElementsByClassName('flat_page')[0];
         let observer = new MutationObserver(function (recs) {
             for (let i=0;i<recs.length;i++) {
