@@ -1,12 +1,15 @@
 // ==UserScript==
 // @name         Steam Emoticon Larger
 // @namespace    https://github.com/sffxzzp
-// @version      0.02
+// @version      0.03
 // @description  protect your eyesight
 // @author       sffxzzp
 // @icon         https://store.steampowered.com/favicon.ico
-// @match        *://steamcommunity.com/profile/*
+// @match        *://steamcommunity.com/profiles/*
 // @match        *://steamcommunity.com/id/*
+// @match        *://steamcommunity.com/sharedfiles/filedetails/?id=*
+// @match        *://steamcommunity.com/workshop/filedetails/discussion/*
+// @match        *://steamcommunity.com/discussions/forum/*
 // @grant        GM_addStyle
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/steam/emoticonlarger.user.js
 // @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/steam/emoticonlarger.user.js
