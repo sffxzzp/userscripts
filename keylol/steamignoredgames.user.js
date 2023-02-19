@@ -5,10 +5,11 @@
 // @description  快速匹配已忽略 Steam 游戏信息
 // @match        *://keylol.com/*
 // @grant        GM_getResourceText
-// @version      0.01
-// @connect      store-content.ak.epicgames.com
+// @version      0.02
 // @resource     userdata https://store.steampowered.com/dynamicstore/userdata
 // @icon         https://store.steampowered.com/favicon.ico
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/keylol/steamignoredgames.user.js
+// @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/keylol/steamignoredgames.user.js
 // ==/UserScript==
 
 (function () {
