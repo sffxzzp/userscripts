@@ -1,12 +1,15 @@
 // ==UserScript==
 // @name         SteamCN Filter
-// @Namespace    https://coding.net/u/sffxzzp
-// @version      0.34
+// @namespace    https://github.com/sffxzzp
+// @version      0.35
 // @author       sffxzzp
+// @description  None
 // @match        *://keylol.com/*
 // @grant        GM_setValue
 // @grant        GM_getValue
+// @grant        unsafeWindow
 // @icon         https://keylol.com/favicon.ico
+// @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/coding/stcnfilter.user.js
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/stcnfilter.user.js
 // ==/UserScript==
 
@@ -39,7 +42,7 @@
             var cur = GM_getValue("read");
             if (cur) {
                 cur = JSON.parse(cur);
-                if (cur.length>1000) {cur = cur.splice(cur.length-1000);}
+                if (cur.length>100) {cur = cur.splice(cur.length-100);}
                 return cur;
             }
             else {return null;}
