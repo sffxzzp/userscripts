@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SteamCN Filter
 // @namespace    https://github.com/sffxzzp
-// @version      0.35
+// @version      0.36
 // @author       sffxzzp
 // @description  None
 // @match        *://keylol.com/*
@@ -33,6 +33,7 @@
             var cur = GM_getValue("read");
             if (cur) {
                 cur = JSON.parse(cur);
+                if (cur.length>100) {cur = cur.splice(cur.length-100);}
                 if (cur.indexOf(id)<0) {cur.push(id);}
             }
             else {cur = [id];}
@@ -42,7 +43,6 @@
             var cur = GM_getValue("read");
             if (cur) {
                 cur = JSON.parse(cur);
-                if (cur.length>100) {cur = cur.splice(cur.length-100);}
                 return cur;
             }
             else {return null;}
