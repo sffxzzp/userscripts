@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Humble Choice Key Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.25
+// @version      0.26
 // @description  Display Humble Choice region restriction infomation, and select game without reveal it's key, and reveal all selected keys.
 // @author       sffxzzp
 // @match        *://*.humblebundle.com/subscription/*
@@ -511,10 +511,7 @@
                 textarea.value = "";
                 for (var l=0;l<content.length;l++) {
                     if (choosed.indexOf(content[l].selName) >= 0) {
-                        var data = new FormData();
-                        data.append("keytype", content[l].rawName);
-                        data.append("key", gameKey);
-                        data.append("keyindex", 0);
+                        var data = new URLSearchParams({ keytype: content[l].rawName, key: gameKey, "keyindex": 0});
                         __this.getKey(textarea, content[l].title, data);
                     }
                 }
