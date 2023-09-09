@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.04
+// @version      0.05
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://unpkg.com/hls.js/dist/hls.min.js
@@ -141,7 +141,7 @@
                 vbtn.setAttribute('link', link);
                 vbtn.setAttribute('class', 'lineData');
                 vbtn.onclick = function () {
-                    art.switchUrl(this.getAttribute('link'));
+                    art.switchQuality(this.getAttribute('link'));
                     document.querySelectorAll('div.lineData').forEach(function (node) {
                         node.style.background = "white";
                     })
