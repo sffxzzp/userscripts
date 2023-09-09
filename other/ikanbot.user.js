@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
-// @description  Nothing
+// @version      0.02
+// @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://unpkg.com/hls.js/dist/hls.min.js
 // @require      https://unpkg.com/flv.js/dist/flv.min.js
@@ -10,6 +10,8 @@
 // @require      https://unpkg.com/artplayer/dist/artplayer.js
 // @match        *://www.ikanbot.com/play/*
 // @grant        none
+// @updateURL    https://raw.githubusercontent.com/sffxzzp/userscripts/master/other/ikanbot.user.js
+// @downloadURL  https://raw.githubusercontent.com/sffxzzp/userscripts/master/other/ikanbot.user.js
 // ==/UserScript==
 
 (function() {
