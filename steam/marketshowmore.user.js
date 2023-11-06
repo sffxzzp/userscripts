@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Market Show More
 // @namespace    https://github.com/sffxzzp
-// @version      0.02
+// @version      0.03
 // @description  Show more price listing in market page.
 // @author       sffxzzp
 // @match        *://steamcommunity.com/market/listings/*/*
@@ -9,12 +9,12 @@
 // @grant        unsafeWindow
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/steam/marketshowmore.user.js
 // @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/steam/marketshowmore.user.js
-// @run-at       document-start
+// @run-at       document-body
 // ==/UserScript==
 
 (function() {
     // 需要显示的行数范围 0-100
-    var num = 100;
+    var num = 20;
 
     unsafeWindow.Market_LoadOrderSpread = function (item_nameid) {
         unsafeWindow.$J.ajax( {
@@ -32,18 +32,20 @@
             if ( data.success == 1 )
             {
                 var sell_order_table = `<table class="market_commodity_orders_table"><tr><th align="right">价格</th><th align="right">数量</th></tr>`;
-                for (var i = 0; i <= num-1; i++) {
-                    if (i == num-1) {
-                        sell_order_table += `<tr><td align="right" class="">${data.price_prefix} ${data.sell_order_graph[i][0].toFixed(2)} ${data.price_suffix} 或更高</td><td align="right">${data.sell_order_graph[100][1]-data.sell_order_graph[i][1]}</td></tr>`;
+                var maxsell = num < data.sell_order_graph.length ? num - 1 : data.sell_order_graph.length - 1;
+                for (var i = 0; i < maxsell; i++) {
+                    if (i == maxsell - 1) {
+                        sell_order_table += `<tr><td align="right" class="">${data.price_prefix} ${data.sell_order_graph[i][0].toFixed(2)} ${data.price_suffix} 或更高</td><td align="right">${data.sell_order_graph[maxsell][1]-data.sell_order_graph[i][1]}</td></tr>`;
                     } else {
                         sell_order_table += `<tr><td align="right" class="">${data.price_prefix} ${data.sell_order_graph[i][0].toFixed(2)} ${data.price_suffix}</td><td align="right">${data.sell_order_graph[i+1][1]-data.sell_order_graph[i][1]}</td></tr>`;
                     }
                 }
                 sell_order_table += `</table>`;
                 var buy_order_table = `<table class="market_commodity_orders_table"><tr><th align="right">价格</th><th align="right">数量</th></tr>`;
-                for (var j = 0; j <= num-1; j++) {
-                    if (j == num-1) {
-                        buy_order_table += `<tr><td align="right" class="">${data.price_prefix} ${data.buy_order_graph[j][0].toFixed(2)} ${data.price_suffix} 或更低</td><td align="right">${data.buy_order_graph[100][1]-data.buy_order_graph[j][1]}</td></tr>`;
+                var maxbuy = num < data.buy_order_graph.length ? num - 1 : data.buy_order_graph.length - 1;
+                for (var j = 0; j < maxbuy; j++) {
+                    if (j == maxbuy - 1) {
+                        buy_order_table += `<tr><td align="right" class="">${data.price_prefix} ${data.buy_order_graph[j][0].toFixed(2)} ${data.price_suffix} 或更低</td><td align="right">${data.buy_order_graph[maxbuy][1]-data.buy_order_graph[j][1]}</td></tr>`;
                     } else {
                         buy_order_table += `<tr><td align="right" class="">${data.price_prefix} ${data.buy_order_graph[j][0].toFixed(2)} ${data.price_suffix}</td><td align="right">${data.buy_order_graph[j+1][1]-data.buy_order_graph[j][1]}</td></tr>`;
                     }
