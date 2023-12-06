@@ -1,6 +1,14 @@
 # userscripts
 一些自己写的 userscripts，因为有些我自己也不太用了，所以不保证有效。
 
+## 我的其他 userscripts 仓库
+
+[SteamMarketTools](https://github.com/sffxzzp/SteamMarketTools)
+
+[SteamChineseChecker](https://github.com/sffxzzp/SteamChineseChecker)
+
+[EpicInfo](https://github.com/sffxzzp/EpicInfo)
+
 ## 文件列表
 
 注：弃用的脚本不会列出
@@ -51,8 +59,6 @@
 * keylol
   * 7lrewards.user.js
     * 其乐显示赠楼价值
-  * epicinfo.user.js
-    * 其乐快速匹配 Epic 游戏信息，现已移动到 [EpicInfo](https://github.com/sffxzzp/EpicInfo) 仓库
   * itchinfo.user.js
     * 其乐快速匹配 Itch.io 游戏信息，不一定能用了
   * stcnsteamid.user.js
