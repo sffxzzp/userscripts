@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Keylol Markdown Editor
 // @namespace    https://github.com/
-// @version      0.14
+// @version      0.20
 // @description  Replace keylol.com default editor to a markdown editor which will transform markdown to bbcode.
 // @author       sffxzzp
-// @include      /https?://(dev\.)?keylol\.com/forum\.php\?mod=post&action=(newthread|edit|reply).*?/
+// @include      /https?://keylol\.com/forum\.php\?mod=post&action=(newthread|edit|reply).*?/
 // @icon         https://keylol.com/favicon.ico
-// @require      https://unpkg.com/marked/marked.min.js
+// @require      https://unpkg.com/marked@11.0.0/marked.min.js
 // @grant        unsafeWindow
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/other/stcnmdeditor.user.js
 // @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/other/stcnmdeditor.user.js
@@ -39,31 +39,32 @@
         var kme = function () {
             var _this = this;
             this.oriEditor = document.querySelector('textarea[name=message]');
-            this.renderer = new marked.Renderer();
-            this.renderer.code = function (code, info, escaped) {return `[code]${info?'language: '+info+'\n':''}${code}[/code]\n`};
-            this.renderer.blockquote = function (quote) {return `[quote]${quote}[/quote]\n`};
-            this.renderer.html = function (html) {return html};
-            this.renderer.heading = function (text, level) {return `[k${level-1}]${text}[/k${level-1}]\n`};
-            this.renderer.hr = function () {return `[img]static/image/hrline/3.gif[/img]\n`};
-            this.renderer.list = function (body, ordered, start) {return `[list${(ordered == true) ? '=1' : ''}]\n${body}[/list]`};
-            this.renderer.listitem = function (text, task, checked) {return `[*]${text}\n`};
-            this.renderer.checkbox = function (checked) {return `[${checked ? '√' : '×'}] `};
-            this.renderer.paragraph = function (text) {return `${util.entityToString(text)}\n\n`};
-            this.renderer.table = function (header, body) {return `[table]\n${header}${body}[/table]\n`};
-            this.renderer.tablerow = function (content) {return `[tr]${content}[/tr]\n`};
-            this.renderer.tablecell = function (content, flags) {
-                if (flags.header) {content = `[b]${content}[/b]`;}
-                if (flags.align) {content = `[align=${flags.align}]${content}[/align]`;}
-                return `[td]${content}[/td]`;
+            const renderer = {
+                code(code, info, escaped) {return `[code]${info?'language: '+info+'\n':''}${code}[/code]\n`},
+                blockquote(quote) {return `[quote]${quote}[/quote]\n`},
+                html(html) {return html},
+                heading(text, level) {return `[k${level-1}]${text}[/k${level-1}]\n`},
+                hr() {return `[img]static/image/hrline/3.gif[/img]\n`},
+                list(body, ordered, start) {return `[list${(ordered == true) ? '=1' : ''}]\n${body}[/list]`},
+                listitem(text, task, checked) {return `[*]${text}\n`},
+                checkbox(checked) {return `[${checked ? '√' : '×'}] `},
+                paragraph(text) {return `${util.entityToString(text)}\n\n`},
+                table(header, body) {return `[table]\n${header}${body}[/table]\n`},
+                tablerow(content) {return `[tr]${content}[/tr]\n`},
+                tablecell(content, flags) {
+                    if (flags.header) {content = `[b]${content}[/b]`;}
+                    if (flags.align) {content = `[align=${flags.align}]${content}[/align]`;}
+                    return `[td]${content}[/td]`;
+                },
+                strong(text) {return `[b]${text}[/b]`},
+                em(text) {return `[i]${text}[/i]`},
+                codespan(code) {return `「${code}」`},
+                del(text) {return `[s]${text}[/s]`},
+                link(href, title, text) {return `[url=${href}]${text}[/url]`},
+                image(href, title, text) {return `[img]${href}[/img]`},
             };
-            this.renderer.strong = function (text) {return `[b]${text}[/b]`};
-            this.renderer.em = function (text) {return `[i]${text}[/i]`};
-            this.renderer.codespan = function (code) {return `「${code}」`};
-            this.renderer.del = function (text) {return `[s]${text}[/s]`};
-            this.renderer.link = function (href, title, text) {return `[url=${href}]${text}[/url]`};
-            this.renderer.image = function (href, title, text) {return `[img]${href}[/img]`};
             marked.use({
-                renderer: this.renderer,
+                renderer: renderer,
                 breaks: true
             });
         };
