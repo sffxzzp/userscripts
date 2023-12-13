@@ -51,6 +51,9 @@
     * 忽略 Steam 社区的 R18 提示
   * steamwishlistcopy.user.js
     * 复制他人 Steam 愿望单
+* enhancedsteamcommunity-fork
+  * esc.user.js
+    * [Enhanced Steam Community](https://greasyfork.org/scripts/954-enhanced-steam-community) 个人修复版
 * h5player
   * CWL.user.js
     * 彩票开奖直播改用 H5 播放器
