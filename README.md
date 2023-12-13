@@ -89,3 +89,5 @@
     * 手机端看 Steam 通知改进
   * steamwishlistfilter.user.js
     * Steam 愿望单支持过滤自定义折扣
+  * multibuy.user.js
+    * 给 Steam 徽章页添加批量购买按钮，调用 Steam 自带的批量购买
