@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Humble Games Collection Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
+// @version      0.02
 // @description  A script that displays games info in Humble Games Collection
 // @author       sffxzzp
 // @match        *://www.humblebundle.com/membership/collection*
+// @match        *://www.humblebundle.com/accessibility*
 // @icon         https://cdn.humblebundle.com/static/hashed/46cf2ed85a0641bfdc052121786440c70da77d75.png
 // @grant        GM_openInTab
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/HumbleGamesCollection/HGCT.user.js
@@ -82,7 +83,7 @@
 
             var outputHTML = "<h1>Humble Games Collection List</h1>";
             for (let i of res) {
-                outputHTML += `<div style="height: 150px; display: inline-block; width: 33.3333%; vertical-align: top;">`;
+                outputHTML += `<div style="height: 200px; display: inline-block; width: 33.3333%; vertical-align: top;">`;
                 outputHTML += `<div style="font-size: 20px; font-weight: bold;">${i['human-name']}</div>`;
                 outputHTML += ``;
                 for (let platform in i.downloads) {
