@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.05
+// @version      0.06
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
-// @require      https://unpkg.com/hls.js/dist/hls.min.js
-// @require      https://unpkg.com/flv.js/dist/flv.min.js
-// @require      https://unpkg.com/dashjs/dist/dash.all.min.js
-// @require      https://unpkg.com/artplayer/dist/artplayer.js
-// @match        *://www.ikanbot.com/play/*
+// @require      https://fastly.jsdelivr.net/npm/hls.js/dist/hls.min.js
+// @require      https://fastly.jsdelivr.net/npm/flv.js/dist/flv.min.js
+// @require      https://fastly.jsdelivr.net/npm/dashjs@4.7.3/dist/dash.all.min.js
+// @require      https://fastly.jsdelivr.net/npm/artplayer@5.1.1/dist/artplayer.js
+// @match        *://*.ikanbot.com/play/*
 // @grant        GM_webRequest
 // @grant        unsafeWindow
 // @updateURL    https://raw.githubusercontent.com/sffxzzp/userscripts/master/other/ikanbot.user.js
