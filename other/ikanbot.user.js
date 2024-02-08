@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.06
+// @version      0.07
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://fastly.jsdelivr.net/npm/hls.js/dist/hls.min.js
@@ -119,6 +119,7 @@
             if (event.key == ">" && event.shiftKey) {video.currentTime += step;notice(`快进 ${step} 秒`);}
             if (event.key == "<" && event.shiftKey) {video.currentTime -= step;notice(`快退 ${step} 秒`);}
             if (event.key == "f") { toggleFullscreen(); }
+            if (event.key == " " && event.shiftKey) { if (art) {art.toggle()} else {video.paused == true ? video.play() : video.pause()} }
             if (event.key == "+" && event.shiftKey) {pbrate += 0.5;}
             if (event.key == "_" && event.shiftKey) {pbrate -= 0.5;}
             if (event.key == "!" && event.shiftKey) {pbrate = 1;}
@@ -129,8 +130,7 @@
             if (event.key == "^" && event.shiftKey) {pbrate = 6;}
             if (event.key == "&" && event.shiftKey) {pbrate = 7;}
             if (event.key == "*" && event.shiftKey) {pbrate = 8;}
-            if (pbrate != video.playbackRate) {notice(`速度：${pbrate}x`)}
-            video.playbackRate = pbrate;
+            if (pbrate != video.playbackRate) {video.playbackRate = pbrate;notice(`速度：${pbrate}x`);}
         };
 
         function load() {
@@ -141,7 +141,7 @@
                 vbtn.setAttribute('link', link);
                 vbtn.setAttribute('class', 'lineData');
                 vbtn.onclick = function () {
-                    art.switchQuality(this.getAttribute('link'));
+                    art.switchUrl(this.getAttribute('link'));
                     document.querySelectorAll('div.lineData').forEach(function (node) {
                         node.style.background = "white";
                     })
