@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Notifications for Phone
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
+// @version      0.02
 // @description  add some style that makes steam notification page more suitable for phone.
 // @author       sffxzzp
 // @match        *://steamcommunity.com/*/notifications
