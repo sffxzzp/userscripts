@@ -9,5 +9,5 @@
 // ==/UserScript==
 
 (function() {
-    GM_addStyle('div[class^=notifications_NotificationsBody] {display: initial;} div[class^=notifications_NotificationFiltersCtn] {margin-top: 10px;}');
+    GM_addStyle('div#react_root > div:nth-child(2) > div:nth-child(2) {display: initial;} div#react_root > div:nth-child(2) > div:nth-child(2) > div:nth-child(2) {margin-top: 10px; max-width: initial;}');
 })();
