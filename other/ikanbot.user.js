@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.10
+// @version      0.11
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://fastly.jsdelivr.net/npm/hls.js@1.5.5/dist/hls.min.js
@@ -18,8 +18,13 @@
 
 (function() {
     // try to unload player
-    unsafeWindow.videojs.players['ikanbot-player'].unloadTech_();
-    setTimeout(function () {unsafeWindow.videojs.players['ikanbot-player'].unloadTech_()}, 3000);
+    function unload() {
+        if (unsafeWindow.videojs.players.hasOwnProperty('ikanbot-player')) {
+            unsafeWindow.videojs.players['ikanbot-player'].unloadTech_();
+            clearInterval(intID);
+        }
+    }
+    let intID = setInterval(function () {unload()}, 1000);
 
     // the rest of the code should run when document loaded instead of document-start
     document.addEventListener('DOMContentLoaded', init);
