@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.07
+// @version      0.10
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
-// @require      https://fastly.jsdelivr.net/npm/hls.js/dist/hls.min.js
-// @require      https://fastly.jsdelivr.net/npm/flv.js/dist/flv.min.js
+// @require      https://fastly.jsdelivr.net/npm/hls.js@1.5.5/dist/hls.min.js
+// @require      https://fastly.jsdelivr.net/npm/flv.js@1.6.2/dist/flv.min.js
 // @require      https://fastly.jsdelivr.net/npm/dashjs@4.7.3/dist/dash.all.min.js
 // @require      https://fastly.jsdelivr.net/npm/artplayer@5.1.1/dist/artplayer.js
 // @match        *://*.ikanbot.com/play/*
@@ -17,14 +17,9 @@
 // ==/UserScript==
 
 (function() {
-    // block webpage's default video.js
-    GM_webRequest([
-        { selector: '*://cdn.staticfile.org/video.js/*', action: 'cancel' }
-    ], function (info, message, details) {
-        console.log(info, message, details);
-    });
-    // add a videojs to keep page js run without errors
-    unsafeWindow.videojs = function (div, options) {};
+    // try to unload player
+    unsafeWindow.videojs.players['ikanbot-player'].unloadTech_();
+    setTimeout(function () {unsafeWindow.videojs.players['ikanbot-player'].unloadTech_()}, 3000);
 
     // the rest of the code should run when document loaded instead of document-start
     document.addEventListener('DOMContentLoaded', init);
