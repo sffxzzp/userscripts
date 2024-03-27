@@ -83,6 +83,7 @@
     * 尝试禁用所有网站的 Service Worker，可能导致部分网站无法正常加载
   * ikanbot.user.js
     * 给 ikanbot 网站换一个 H5 播放器，增强网页版观看体验
+    * 快捷键同 h5player/videospeedup.user.js
   * stcnmdeditor.user.js
     * 其乐发帖编辑器中的 markdown 助手
 * steam
