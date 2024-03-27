@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.11
+// @version      0.20
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://fastly.jsdelivr.net/npm/hls.js@1.5.5/dist/hls.min.js
@@ -108,6 +108,13 @@
         });
         art.isFocus = true;
         art.pause();
+        document.querySelector('.art-control-fullscreenWeb').onclick = function () {
+            if (document.body.style.overflow == "hidden") {
+                document.body.style.overflow = "";
+            } else {
+                document.body.style.overflow = "hidden";
+            }
+        }
         let dp = null;
 
         document.onkeydown = function() {
@@ -118,7 +125,9 @@
             function notice(text) {if (art) { art.notice.show = text; } else if (dp) { dp.notice(text); }}
             if (event.key == ">" && event.shiftKey) {video.currentTime += step;notice(`快进 ${step} 秒`);}
             if (event.key == "<" && event.shiftKey) {video.currentTime -= step;notice(`快退 ${step} 秒`);}
-            if (event.key == "f") { toggleFullscreen(); }
+            if (event.key == "f") {toggleFullscreen();}
+            if (event.key == "=" && event.repeat === false) {pbrate = pbrate * 2;}
+            if (event.key == "-" && event.repeat === false) {pbrate = pbrate / 2;}
             if (event.key == " " && event.shiftKey) { if (art) {art.toggle()} else {video.paused == true ? video.play() : video.pause()} }
             if (event.key == "+" && event.shiftKey) {pbrate += 0.5;}
             if (event.key == "_" && event.shiftKey) {pbrate -= 0.5;}
@@ -131,6 +140,13 @@
             if (event.key == "&" && event.shiftKey) {pbrate = 7;}
             if (event.key == "*" && event.shiftKey) {pbrate = 8;}
             if (pbrate != video.playbackRate) {video.playbackRate = pbrate;notice(`速度：${pbrate}x`);}
+        };
+        document.onkeyup = function() {
+            let video = document.querySelector('video');
+            let pbrate = video.playbackRate || 1;
+            if (event.key == "=") {pbrate = pbrate / 2;}
+            if (event.key == "-") {pbrate = pbrate * 2;}
+            video.playbackRate = pbrate;
         };
 
         function load() {
