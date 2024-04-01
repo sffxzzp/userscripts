@@ -1,53 +1,20 @@
 // ==UserScript==
 // @name         5sing downloader
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
+// @version      0.10
 // @description  Download mp3 from 5sing without download.
 // @author       sffxzzp
 // @match        *://5sing.kugou.com/*/*
 // @grant        unsafeWindow
 // @grant        GM_download
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/5sing/5singdownloader.user.js
+// @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/5sing/5singdownloader.user.js
 // ==/UserScript==
 
 (function() {
     'use strict';
     var util = (function () {
         function util() {}
-        util.xhr = function (xhrData) {
-            return new Promise(function(resolve, reject) {
-                if (!xhrData.xhr) {
-                    GM_xmlhttpRequest({
-                        method: xhrData.method || "get",
-                        url: xhrData.url,
-                        data: xhrData.data,
-                        headers: xhrData.headers || {},
-                        responseType: xhrData.type || "",
-                        timeout: 3e5,
-                        onload: function onload(res) {
-                            return resolve({ response: res, body: res.response });
-                        },
-                        onerror: reject,
-                        ontimeout: reject
-                    });
-                } else {
-                    var xhr = new XMLHttpRequest();
-                    xhr.open(xhrData.method || "get", xhrData.url, true);
-                    if (xhrData.method === "post") {xhr.setRequestHeader("content-type", "application/x-www-form-urlencoded; charset=utf-8");}
-                    if (xhrData.cookie) {xhr.withCredentials = true;}
-                    xhr.responseType = xhrData.type || "";
-                    xhr.timeout = 3e5;
-                    if (xhrData.headers) {for (var k in xhrData.headers) {xhr.setRequestHeader(k, xhrData.headers[k]);}}
-                    xhr.onload = function(ev) {
-                        var evt = ev.target;
-                        resolve({ response: evt, body: evt.response });
-                    };
-                    xhr.onerror = reject;
-                    xhr.ontimeout = reject;
-                    xhr.send(xhrData.data);
-                }
-            });
-        };
         util.createElement = function (data) {
             var node;
             if (data.node) {
@@ -78,20 +45,34 @@
             };
         };
         fsd.prototype.run = async function () {
-            var songData = JSON.parse(atob(unsafeWindow.globals.ticket)) || null;
-            if (songData != null) {
-                var songID = songData.songID;
-                var songType = songData.songType;
-                var downData = await util.xhr({
-                    url: `http://service.5sing.kugou.com/song/getsongurl?songid=${songID}&songtype=${songType}`,
-                    type: 'json',
-                    xhr: true
-                });
-                downData = downData.body.data;
-                var songAuthor = downData.user.NN || 'Unknown';
-                var songName = `[${songAuthor}]${downData.songName}`;
-                var songUrl = downData.lqurl;
-                this.setDownloadButton(songUrl, songName);
+            var _this = this;
+            if (unsafeWindow.globals.hasOwnProperty('ticket')) {
+                var songData = JSON.parse(atob(unsafeWindow.globals.ticket)) || null;
+                if (songData != null) {
+                    var songID = songData.songID;
+                    var songType = songData.songType;
+                    var params = {
+                        songid: songData.songID,
+                        songtype: songData.songType,
+                        version: '6.6.72'
+                    };
+                    unsafeWindow.globalSign(params, null, async function (get, post) {
+                        var downData = await unsafeWindow.$.ajax({
+                            url: `https://5sservice.kugou.com/song/getsongurl`,
+                            type: 'GET',
+                            dataType: 'json',
+                            data: get,
+                            xhrFields: {withCredetials: true}
+                        });
+                        downData = downData.data;
+                        var songAuthor = downData.user.NN || 'Unknown';
+                        var songName = `[${songAuthor}]${downData.songName}`;
+                        var songUrl = downData.lqurl;
+                        _this.setDownloadButton(songUrl, songName);
+                    });
+                }
+            } else {
+                setTimeout(function () {_this.run()}, 1000);
             }
         };
         return fsd;
