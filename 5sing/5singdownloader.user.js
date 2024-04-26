@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         5sing downloader
 // @namespace    https://github.com/sffxzzp
-// @version      0.15
-// @description  Download mp3 from 5sing without download.
+// @version      0.20
+// @description  Download mp3 from 5sing without login.
 // @author       sffxzzp
 // @match        *://5sing.kugou.com/*/*
+// @match        *://wsaudio2bssdlbig.kugou.com/*/*/bss/extname/wsaudio/*.mp3
 // @grant        unsafeWindow
 // @grant        GM_download
 // @grant        GM_addStyle
@@ -45,7 +46,6 @@
                 GM_download({
                     url: songUrl,
                     name: songName,
-                    saveAs: true,
                     onerror: window.open(songUrl, songName),
                     ontimeout: window.open(songUrl, songName),
                 });
@@ -53,6 +53,7 @@
         };
         fsd.prototype.run = async function () {
             var _this = this;
+            var isHTTPS = location.href.indexOf('https') > -1;
             var songTypeUI = {
                 bz: '伴奏',
                 yc: '原唱',
@@ -71,7 +72,7 @@
                     };
                     unsafeWindow.globalSign(params, null, async function (get, post) {
                         var downData = await unsafeWindow.$.ajax({
-                            url: `https://5sservice.kugou.com/song/getsongurl`,
+                            url: (isHTTPS ? "https://5sservice.kugou.com" : "http://service.5sing.kugou.com") + "/song/getsongurl",
                             type: 'GET',
                             dataType: 'json',
                             data: get,
@@ -80,8 +81,9 @@
                         downData = downData.data;
                         var type = songTypeUI[songType] == null ? "" : "- "+songTypeUI[songType];
                         var songAuthor = downData.user.NN || 'Unknown';
-                        var songName = `${songAuthor} - ${downData.songName}${type}`;
-                        var songUrl = downData.lqurl;
+                        var songExt = downData.hqext || downData.lqext || downData.sqext;
+                        var songName = `${songAuthor} - ${downData.songName}${type}.${songExt}`;
+                        var songUrl = downData.hqurl || downData.lqurl || downData.squrl || downData.hqurl_backup || downData.lqurl_backup || downData.squrl_backup;
                         _this.setDownloadButton(songUrl, songName);
                     });
                 }
@@ -91,6 +93,10 @@
         };
         return fsd;
     })();
-    var program = new fsd();
-    program.run();
+    if (location.href.indexOf('wsaudio2bssdlbig') > -1) {
+        window.close()
+    } else {
+        var program = new fsd();
+        program.run();
+    }
 })();
