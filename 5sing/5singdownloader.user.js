@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         5sing downloader
 // @namespace    https://github.com/sffxzzp
-// @version      0.10
+// @version      0.15
 // @description  Download mp3 from 5sing without download.
 // @author       sffxzzp
 // @match        *://5sing.kugou.com/*/*
 // @grant        unsafeWindow
 // @grant        GM_download
+// @grant        GM_addStyle
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/5sing/5singdownloader.user.js
 // @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/5sing/5singdownloader.user.js
 // ==/UserScript==
@@ -38,15 +39,27 @@
             var downButton = document.querySelector('.view_player_down');
             util.setElement({
                 node: downButton,
-                html: `<a href="javascript:;" id="fs_download" class="action_down" target="_blank"><b class="v_b"></b>直接下载</a>`
+                html: `<a href="${songUrl}" id="fs_download" class="action_down"><b class="v_b"></b>直接下载</a>`
             });
             document.querySelector('#fs_download').onclick = function () {
-                GM_download(songUrl, songName);
+                GM_download({
+                    url: songUrl,
+                    name: songName,
+                    saveAs: true,
+                    onerror: window.open(songUrl, songName),
+                    ontimeout: window.open(songUrl, songName),
+                });
             };
         };
         fsd.prototype.run = async function () {
             var _this = this;
+            var songTypeUI = {
+                bz: '伴奏',
+                yc: '原唱',
+                fc: '翻唱',
+            };
             if (unsafeWindow.globals.hasOwnProperty('ticket')) {
+                GM_addStyle('.view_player_tj, .view_player_ts { display: none; }');
                 var songData = JSON.parse(atob(unsafeWindow.globals.ticket)) || null;
                 if (songData != null) {
                     var songID = songData.songID;
@@ -65,8 +78,9 @@
                             xhrFields: {withCredetials: true}
                         });
                         downData = downData.data;
+                        var type = songTypeUI[songType] == null ? "" : "- "+songTypeUI[songType];
                         var songAuthor = downData.user.NN || 'Unknown';
-                        var songName = `[${songAuthor}]${downData.songName}`;
+                        var songName = `${songAuthor} - ${downData.songName}${type}`;
                         var songUrl = downData.lqurl;
                         _this.setDownloadButton(songUrl, songName);
                     });
