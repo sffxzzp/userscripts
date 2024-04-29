@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Netease Cloud Game AD Skipper
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
+// @version      0.02
 // @description  nothing
 // @author       sffxzzp
 // @match        *://static-ssl.mediav.com/*
@@ -16,5 +16,6 @@
         setInterval(function () {document.querySelector('div.close-video').click()}, 500);
     } else {
         GM_addStyle(".adspcConfirmCon {display: none !important;}");
+        setInterval(function () {document.querySelector('div.cofirm-btns > a.g-Btn').click()}, 500);
     }
 })();
