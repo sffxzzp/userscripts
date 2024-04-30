@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.20
+// @version      0.30
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://fastly.jsdelivr.net/npm/hls.js@1.5.5/dist/hls.min.js
@@ -144,29 +144,45 @@
         document.onkeyup = function() {
             let video = document.querySelector('video');
             let pbrate = video.playbackRate || 1;
+            function notice(text) {if (art) { art.notice.show = text; } else if (dp) { dp.notice(text); }}
             if (event.key == "=") {pbrate = pbrate / 2;}
             if (event.key == "-") {pbrate = pbrate * 2;}
             video.playbackRate = pbrate;
+            notice(`速度：${pbrate}x`);
         };
 
         function load() {
+            let videoId = document.getElementById("current_id").value;
             document.querySelectorAll('div[name=lineData]').forEach(function (node) {
                 var link = node.getAttribute('udata');
                 let vbtn = document.createElement('div');
                 vbtn.innerHTML = node.innerHTML;
                 vbtn.setAttribute('link', link);
                 vbtn.setAttribute('class', 'lineData');
+                vbtn.id = node.id;
                 vbtn.onclick = function () {
                     art.switchUrl(this.getAttribute('link'));
                     document.querySelectorAll('div.lineData').forEach(function (node) {
                         node.style.background = "white";
                     })
                     this.style.background = "cyan";
+                    unsafeWindow.savePlayHistory({
+                        videoId: videoId,
+                        lineId: this.id,
+                        title: document.getElementById("video_title").innerText,
+                        name: this.innerText,
+                        date: (new Date()).getTime(),
+                    })
                 };
                 node.parentNode.appendChild(vbtn);
                 node.parentNode.removeChild(node);
             });
-            document.querySelector('div.lineData').click();
+            let historyV = unsafeWindow.getPlayHistory(videoId);
+            if (historyV) {
+                try { if (historyV.lineId) { document.getElementById(historyV.lineId).click(); }} catch (e) {}
+            } else {
+                document.querySelector('div.lineData').click();
+            }
         }
 
         var lineData = document.getElementById('lineContent');
