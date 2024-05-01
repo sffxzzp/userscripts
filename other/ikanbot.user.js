@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.31
+// @version      0.32
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://fastly.jsdelivr.net/npm/hls.js@1.5.5/dist/hls.min.js
@@ -151,6 +151,7 @@
             if (pbrate != video.playbackRate) {notice(`速度：${pbrate}x`);}
         };
         function load() {
+            let video = art.video || document.querySelector('video');
             let videoId = document.getElementById("current_id").value;
             document.querySelectorAll('div[name=lineData]').forEach(function (node) {
                 var link = node.getAttribute('udata');
@@ -172,6 +173,7 @@
                         name: this.innerText,
                         date: (new Date()).getTime(),
                     })
+                    video.scrollIntoView({behavior: "smooth", block: "center"});
                 };
                 node.parentNode.appendChild(vbtn);
                 node.parentNode.removeChild(node);
