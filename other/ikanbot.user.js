@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.30
+// @version      0.31
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://fastly.jsdelivr.net/npm/hls.js@1.5.5/dist/hls.min.js
@@ -139,18 +139,17 @@
             if (event.key == "^" && event.shiftKey) {pbrate = 6;}
             if (event.key == "&" && event.shiftKey) {pbrate = 7;}
             if (event.key == "*" && event.shiftKey) {pbrate = 8;}
-            if (pbrate != video.playbackRate) {video.playbackRate = pbrate;notice(`速度：${pbrate}x`);}
+            if (pbrate != video.playbackRate) {video.playbackRate = pbrate; notice(`速度：${pbrate}x`);}
         };
         document.onkeyup = function() {
-            let video = document.querySelector('video');
+            let video = art || document.querySelector('video');
             let pbrate = video.playbackRate || 1;
             function notice(text) {if (art) { art.notice.show = text; } else if (dp) { dp.notice(text); }}
             if (event.key == "=") {pbrate = pbrate / 2;}
             if (event.key == "-") {pbrate = pbrate * 2;}
             video.playbackRate = pbrate;
-            notice(`速度：${pbrate}x`);
+            if (pbrate != video.playbackRate) {notice(`速度：${pbrate}x`);}
         };
-
         function load() {
             let videoId = document.getElementById("current_id").value;
             document.querySelectorAll('div[name=lineData]').forEach(function (node) {
@@ -184,7 +183,6 @@
                 document.querySelector('div.lineData').click();
             }
         }
-
         var lineData = document.getElementById('lineContent');
         var observer = new MutationObserver(function (recs) {
             load();
