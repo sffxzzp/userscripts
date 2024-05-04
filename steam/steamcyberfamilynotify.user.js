@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
-// @description  show recent purchase
+// @version      0.02
+// @description  show recent purchase of your steam cyber family
 // @author       sffxzzp
 // @match        *://*/*
 // @icon         https://store.steampowered.com/favicon.ico
@@ -59,7 +59,7 @@
         };
         csfn.prototype.run = async function () {
             var lastcheck = GM_getValue('time') || 0;
-            if (lastcheck < (new Date()).getTime() - 86400000) {
+            if (lastcheck < (new Date()).getTime() - 79200000) {
                 var oldList = GM_getValue('list') || [];
                 var oldIdList = [];
                 oldList.forEach(function (game) {
