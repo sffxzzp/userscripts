@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.02
-// @description  show recent purchase of your steam cyber family
+// @version      0.03
+// @description  show recent purchase of your steam cyber family (will exclude what you already have)
 // @author       sffxzzp
 // @match        *://*/*
+// @exclude      *://*.humblebundle.com/*
 // @icon         https://store.steampowered.com/favicon.ico
 // @grant        GM_setValue
 // @grant        GM_getValue
@@ -86,9 +87,11 @@
                             text: game.name,
                             title: 'Steam 赛博家庭有新游戏了！',
                             url: `https://store.steampowered.com/app/${game.appid}/`,
-                            timeout: 5000,
+                            timeout: 10000,
                         });
                     });
+                } else {
+                    GM_setValue('time', (new Date()).getTime() - 59400000);
                 }
             }
         };
