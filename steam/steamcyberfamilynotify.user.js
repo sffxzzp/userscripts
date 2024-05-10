@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.03
+// @version      0.05
 // @description  show recent purchase of your steam cyber family (will exclude what you already have)
 // @author       sffxzzp
 // @match        *://*/*
@@ -56,7 +56,7 @@
                 }
             });
             tmpList.sort(function (a, b) { return b.time - a.time });
-            return tmpList.slice(0, 9);
+            return tmpList.slice(0, 99);
         };
         csfn.prototype.run = async function () {
             var lastcheck = GM_getValue('time') || 0;
@@ -82,7 +82,7 @@
                 if (pushList.length > 0) {
                     GM_setValue('time', (new Date()).getTime());
                     GM_setValue('list', newList);
-                    pushList.forEach(function (game) {
+                    pushList.slice(0, 5).forEach(function (game) {
                         GM_notification({
                             text: game.name,
                             title: 'Steam 赛博家庭有新游戏了！',
