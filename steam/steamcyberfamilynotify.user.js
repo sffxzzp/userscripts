@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.10
+// @version      0.20
 // @description  show recent purchase of your steam cyber family (will exclude what you already have)
 // @author       sffxzzp
 // @match        *://*/*
@@ -43,16 +43,32 @@
         var csfn = function () {};
         csfn.prototype.getRecentList = async function () {
             var access_token = (await util.xhr({url: 'https://store.steampowered.com/pointssummary/ajaxgetasyncconfig', type: 'json'})).body.data.webapi_token;
-            var family_groupid = (await util.xhr({url: `https://api.steampowered.com/IFamilyGroupsService/GetFamilyGroupForUser/v1/?include_family_group_response=true&access_token=${access_token}`, type: 'json'})).body.response.family_groupid;
+            var familyData = (await util.xhr({url: `https://api.steampowered.com/IFamilyGroupsService/GetFamilyGroupForUser/v1/?include_family_group_response=true&access_token=${access_token}`, type: 'json'})).body.response;
+            var family_groupid = familyData.family_groupid;
+            var family_members = {};
+            var reqStr = "";
+            for (let i = 0; i < familyData.family_group.members.length; i++) {
+                family_members[familyData.family_group.members[i].steamid] = "";
+                reqStr += "&steamids["+i+"]="+familyData.family_group.members[i].steamid;
+            }
+            var memberData = (await util.xhr({url: `https://api.steampowered.com/IPlayerService/GetPlayerLinkDetails/v1/?access_token=${access_token}${reqStr}`, type: 'json'})).body.response.accounts;
+            memberData.forEach(function (member) {
+                family_members[member.public_data.steamid] = member.public_data.persona_name;
+            });
             var gameList = (await util.xhr({url: `https://api.steampowered.com/IFamilyGroupsService/GetSharedLibraryApps/v1/?family_groupid=${family_groupid}&include_own=true&access_token=${access_token}`, type: 'json'})).body.response;
             var steamid = gameList.owner_steamid;
             var tmpList = [];
             gameList.apps.forEach(function (game) {
                 if (game.owner_steamids.indexOf(steamid) == -1) {
+                    let ownersArr = [];
+                    game.owner_steamids.forEach(function (steamid) {
+                        ownersArr.push(family_members[steamid]);
+                    });
                     tmpList.push({
                         appid: game.appid,
                         name: game.name,
                         time: game.rt_time_acquired,
+                        owners: ownersArr,
                     });
                 }
             });
@@ -61,13 +77,15 @@
         };
         csfn.prototype.run = async function () {
             var lastcheck = GM_getValue('time') || 0;
-            if (lastcheck < (new Date()).getTime() - 79200000) {
+            var running = GM_getValue('running') || false;
+            if (lastcheck < (new Date()).getTime() - 79200000 && !running) {
                 var oldList = GM_getValue('list') || [];
                 var oldIdList = [];
                 oldList.forEach(function (game) {
                     oldIdList.push(game.appid);
                 });
                 var newList = [];
+                GM_setValue('running', true);
                 try {
                     newList = await this.getRecentList();
                 }
@@ -84,9 +102,10 @@
                     GM_setValue('time', (new Date()).getTime());
                     GM_setValue('list', newList);
                     pushList.slice(0, 5).forEach(function (game) {
+                        let text = `义父：${game.owners.join(',')}`
                         GM_notification({
-                            text: game.name,
-                            title: 'Steam 赛博家庭有新游戏了！',
+                            text: text,
+                            title: `赛博家庭新增：${game.name}`,
                             url: `https://store.steampowered.com/app/${game.appid}/`,
                             timeout: 10000,
                         });
@@ -94,6 +113,7 @@
                 } else {
                     GM_setValue('time', (new Date()).getTime() - 59400000);
                 }
+                GM_setValue('running', false);
             }
         };
         return csfn;
