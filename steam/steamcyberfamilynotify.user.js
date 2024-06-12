@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.20
+// @version      0.21
 // @description  show recent purchase of your steam cyber family (will exclude what you already have)
 // @author       sffxzzp
 // @match        *://*/*
@@ -77,15 +77,17 @@
         };
         csfn.prototype.run = async function () {
             var lastcheck = GM_getValue('time') || 0;
-            var running = GM_getValue('running') || false;
-            if (lastcheck < (new Date()).getTime() - 79200000 && !running) {
+            var lastrun = GM_getValue('lastrun') || 0;
+            var timeCond = (new Date()).getTime() - 79200000;
+            var rTimeCond = (new Date()).getTime() - 1800000;
+            if (lastcheck < timeCond && lastrun < rTimeCond) {
                 var oldList = GM_getValue('list') || [];
                 var oldIdList = [];
                 oldList.forEach(function (game) {
                     oldIdList.push(game.appid);
                 });
                 var newList = [];
-                GM_setValue('running', true);
+                GM_setValue('lastrun', (new Date()).getTime());
                 try {
                     newList = await this.getRecentList();
                 }
@@ -113,7 +115,6 @@
                 } else {
                     GM_setValue('time', (new Date()).getTime() - 59400000);
                 }
-                GM_setValue('running', false);
             }
         };
         return csfn;
