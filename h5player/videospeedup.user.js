@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Anime SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      1.25
+// @version      1.30
 // @description  Enhance experiences of anime sites.
 // @author       sffxzzp
 // @match        *://www.zzzfun.one/*
@@ -17,7 +17,46 @@
 // ==/UserScript==
 
 (function() {
-    GM_addStyle('.ABP-Comment-List { display: none; } .ABP-Unit .ABP-Player { width: unset; }');
+    // 一些界面微调
+    GM_addStyle('.ABP-Comment-List { display: none; } .ABP-Unit .ABP-Player { width: unset; } .BH_background .container-player .player .videoframe.vjs-fullwindow {height: 100vh !important;}');
+
+    // 动画疯年龄验证跳过、广告到时间跳过
+    let adskipfunc = function () {
+        let video = document.querySelector('div#video-container video');
+        let adskip = document.querySelector('div#adSkipButton');
+        let adskiptimeout = setTimeout(function () {
+            if (adskip.classList.contains('enable')) {
+                video.muted = false;
+                adskip.click();
+                clearTimeout(adskiptimeout);
+            } else {
+                adskipfunc();
+            }
+        }, 1000);
+    };
+    if (location.href.indexOf('ani.gamer.com.tw')) {
+        let observer = new MutationObserver(function (mutationList) {
+            for (let mutation of mutationList) {
+                let r18btn = mutation.target.querySelector('div.R18 button#adult');
+                if (r18btn) {
+                    r18btn.click();
+                }
+            }
+        });
+        observer.observe(document.getElementById('video-container'), {childList: true, subtree: true})
+        let adobserver = new MutationObserver(function (mutationList) {
+            for (let mutation of mutationList) {
+                let adskip = mutation.target.querySelector('div#adSkipButton');
+                if (adskip) {
+                    mutation.target.querySelector('video').muted = true;
+                    adskipfunc();
+                }
+            }
+        });
+        adobserver.observe(document.getElementById('ani_video'), {childList: true});
+    }
+
+    // zzzfun 增加网页全屏按钮
     if (location.href.indexOf('vod_play_id_') >= 0) {
         let webPrev = document.querySelector('a.prev');
         let webNext = document.querySelector('a.next');
@@ -45,13 +84,15 @@
         webFull.innerHTML = "网页全屏";
         document.querySelector('div.p-oper').appendChild(webFull);
     }
+
+    // 增加快捷键
     document.onkeydown = function() {
         let video = document.querySelector('video');
         let pbrate = video.playbackRate || 1;
         let step = 30;
         var toggleFullscreen = function () {
             var fsElement = document.querySelector('#artplayer') || document.querySelector('#player') || document.querySelector('div.ABP-Player');
-            if (!document.fullscreenElement) {
+            if (fsElement && !document.fullscreenElement) {
                 fsElement.requestFullscreen();
             } else {
                 document.exitFullscreen();
