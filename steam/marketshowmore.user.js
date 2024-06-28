@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Market Show More
 // @namespace    https://github.com/sffxzzp
-// @version      0.03
+// @version      0.04
 // @description  Show more price listing in market page.
 // @author       sffxzzp
 // @match        *://steamcommunity.com/market/listings/*/*
@@ -24,8 +24,7 @@
                 country: unsafeWindow.g_strCountryCode,
                 language: unsafeWindow.g_strLanguage,
                 currency: typeof( unsafeWindow.g_rgWalletInfo ) != 'undefined' && unsafeWindow.g_rgWalletInfo.wallet_currency != 0 ? unsafeWindow.g_rgWalletInfo.wallet_currency : 1,
-                item_nameid: item_nameid,
-                two_factor: unsafeWindow.BIsTwoFactorEnabled() ? 1 : 0
+                item_nameid: item_nameid
             }
         } ).error( function ( ) {
         } ).success( function( data ) {
