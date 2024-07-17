@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.32
+// @version      0.33
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://fastly.jsdelivr.net/npm/hls.js@1.5.5/dist/hls.min.js
@@ -79,6 +79,14 @@
             }
         };
 
+        var hideScrollBar = function (fullscreen) {
+            if (fullscreen) {
+                document.body.style.overflow = "hidden";
+            } else {
+                document.body.style.overflow = "";
+            }
+        };
+
         Artplayer.PLAYBACK_RATE = [0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4, 8];
 
         document.querySelector('video').pause();
@@ -108,13 +116,8 @@
         });
         art.isFocus = true;
         art.pause();
-        document.querySelector('.art-control-fullscreenWeb').onclick = function () {
-            if (document.body.style.overflow == "hidden") {
-                document.body.style.overflow = "";
-            } else {
-                document.body.style.overflow = "hidden";
-            }
-        }
+        art.on('fullscreen', hideScrollBar);
+        art.on('fullscreenWeb', hideScrollBar);
         let dp = null;
 
         document.onkeydown = function() {
