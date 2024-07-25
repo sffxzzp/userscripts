@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.31
+// @version      0.32
 // @description  show recent purchase of your steam cyber family (will exclude what you already have)
 // @author       sffxzzp
 // @match        *://*/*
@@ -129,7 +129,7 @@
             }
             document.querySelectorAll('div.avatarHolder ~ div').forEach(function (node) {
                 if (node.querySelector('div.scfn-cd')) {return}
-                var nickname = node.querySelector('div > div > div').innerHTML;
+                var nickname = node.querySelector('div > div > div').firstChild.nodeValue;;
                 var cdDiv = document.createElement('div');
                 cdDiv.className = "scfn-cd"
                 cdDiv.style = "font-size: 14px; color: darkgray";
