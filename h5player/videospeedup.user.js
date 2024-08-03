@@ -1,24 +1,38 @@
 // ==UserScript==
 // @name         Anime SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      1.30
+// @version      1.40
 // @description  Enhance experiences of anime sites.
 // @author       sffxzzp
 // @match        *://www.zzzfun.one/*
 // @match        *://omofun.in/vod/play/*
 // @match        *://www.5dm.link/html5/player/*
 // @match        *://*/?url=age_*
+// @match        *://*/m3u8/?url=age_*
 // @match        *://*/vip/?url=age_*
+// @match        *://*/*/*/a-pic.php*
 // @match        *://ani.gamer.com.tw/animeVideo.php*
 // @grant        GM_addStyle
+// @grant        GM_webRequest
 // @grant        unsafeWindow
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/h5player/videospeedup.user.js
 // @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/h5player/videospeedup.user.js
 // ==/UserScript==
 
 (function() {
+    // 尝试屏蔽广告，目前在 Manifest v3 版本下无效
+    GM_webRequest([
+        { selector: '*://www.googletagmanager.com/*', action: 'cancel' },
+        { selector: '*://*.g.doubleclick.net/*', action: 'cancel' },
+        { selector: '*://connect.facebook.net/*', action: 'cancel' },
+        { selector: '*://*.2mdn.net/*', action: 'cancel' },
+        { selector: '*://pagead2.googlesyndication.com/*', action: 'cancel' }
+    ], function (info, message, details) {
+        console.log(info, message, details);
+    });
+
     // 一些界面微调
-    GM_addStyle('.ABP-Comment-List { display: none; } .ABP-Unit .ABP-Player { width: unset; } .BH_background .container-player .player .videoframe.vjs-fullwindow {height: 100vh !important;}');
+    GM_addStyle('.ABP-Comment-List, div#egg_mask, div#egg_box { display: none; } .ABP-Unit .ABP-Player { width: unset; } .BH_background .container-player .player .videoframe.vjs-fullwindow {height: 100vh !important;} body:has(div.video.fullwindow) { overflow: hidden; }');
 
     // 动画疯年龄验证跳过、广告到时间跳过
     let adskipfunc = function () {
@@ -34,7 +48,7 @@
             }
         }, 1000);
     };
-    if (location.href.indexOf('ani.gamer.com.tw')) {
+    if (location.href.indexOf('ani.gamer.com.tw') >= 0) {
         let observer = new MutationObserver(function (mutationList) {
             for (let mutation of mutationList) {
                 let r18btn = mutation.target.querySelector('div.R18 button#adult');
