@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Anime SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      1.40
+// @version      1.42
 // @description  Enhance experiences of anime sites.
 // @author       sffxzzp
 // @match        *://www.zzzfun.one/*
@@ -20,7 +20,7 @@
 // ==/UserScript==
 
 (function() {
-    // 尝试屏蔽广告，目前在 Manifest v3 版本下无效
+    // 尝试屏蔽广告
     GM_webRequest([
         { selector: '*://www.googletagmanager.com/*', action: 'cancel' },
         { selector: '*://*.g.doubleclick.net/*', action: 'cancel' },
@@ -32,7 +32,7 @@
     });
 
     // 一些界面微调
-    GM_addStyle('.ABP-Comment-List, div#egg_mask, div#egg_box { display: none; } .ABP-Unit .ABP-Player { width: unset; } .BH_background .container-player .player .videoframe.vjs-fullwindow {height: 100vh !important;} body:has(div.video.fullwindow) { overflow: hidden; }');
+    GM_addStyle('.p-oper { position: sticky; bottom: 0; z-index: 101; } .p-oper.webfs { position: relative; } .ABP-Comment-List, div#egg_mask, div#egg_box { display: none; } .ABP-Unit .ABP-Player { width: unset; } .BH_background .container-player .player .videoframe.vjs-fullwindow {height: 100vh !important;} body:has(div.video.fullwindow) { overflow: hidden; }');
 
     // 动画疯年龄验证跳过、广告到时间跳过
     let adskipfunc = function () {
@@ -72,12 +72,14 @@
 
     // zzzfun 增加网页全屏按钮
     if (location.href.indexOf('vod_play_id_') >= 0) {
+        let bar = document.querySelector('.p-oper');
         let webPrev = document.querySelector('a.prev');
         let webNext = document.querySelector('a.next');
         let webFull = document.createElement('a');
         webFull.onclick = function () {
             let elem = document.querySelector('td#playleft > iframe');
             if (!elem.getAttribute('isfull')) {
+                bar.classList.add('webfs');
                 document.body.style.overflow = "hidden";
                 webPrev.style = "position: fixed; top: 20px; right: 180px; z-index: 101; margin-right: 0;";
                 webNext.style = "position: fixed; top: 20px; right: 100px; z-index: 101; margin-right: 0;";
@@ -85,6 +87,7 @@
                 elem.style = "position: fixed; width: 100vw; height: 100vh; left: 0; top: 0; z-index: 100;";
                 elem.setAttribute('isfull', "true");
             } else {
+                bar.classList.remove('webfs');
                 document.body.style.overflow = "auto";
                 webPrev.style = "";
                 webNext.style = "";
