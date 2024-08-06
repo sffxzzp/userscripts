@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Anime SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      1.42
+// @version      1.43
 // @description  Enhance experiences of anime sites.
 // @author       sffxzzp
 // @match        *://www.zzzfun.one/*
@@ -32,7 +32,7 @@
     });
 
     // 一些界面微调
-    GM_addStyle('.p-oper { position: sticky; bottom: 0; z-index: 101; } .p-oper.webfs { position: relative; } .ABP-Comment-List, div#egg_mask, div#egg_box { display: none; } .ABP-Unit .ABP-Player { width: unset; } .BH_background .container-player .player .videoframe.vjs-fullwindow {height: 100vh !important;} body:has(div.video.fullwindow) { overflow: hidden; }');
+    GM_addStyle('.p-oper { position: sticky; bottom: 0; } .p-oper.webfs { position: relative; } .ABP-Comment-List, div#egg_mask, div#egg_box { display: none; } .ABP-Unit .ABP-Player { width: unset; } .BH_background .container-player .player .videoframe.vjs-fullwindow {height: 100vh !important;} body:has(div.video.fullwindow) { overflow: hidden; }');
 
     // 动画疯年龄验证跳过、广告到时间跳过
     let adskipfunc = function () {
