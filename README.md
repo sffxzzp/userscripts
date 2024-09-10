@@ -88,6 +88,8 @@
     * 网易云游戏广告快速跳过
   * stcnmdeditor.user.js
     * 其乐发帖编辑器中的 markdown 助手
+  * tunnelbeardumper.user.js
+    * 将 TunnelBear 的节点提取为浏览器直接可用的 https 代理
 * steam
   * curatordel.user.js
     * 给 Steam 鉴赏家已发表评测增加快捷删除按钮
