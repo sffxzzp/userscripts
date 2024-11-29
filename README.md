@@ -21,8 +21,11 @@
   * Humble Games Collection 免客户端下载脚本
 * acfun/autospeedup.user.js
   * 添加其他倍速
-* bilibili/autospeedup.user.js
-  * 添加其他倍速，现已被我弃用
+* bilibili
+  * autospeedup.user.js
+    * 添加其他倍速，现已被我弃用
+  * bililivecodefetcher.user.js
+    * 不知道 B 站什么时候加的非要 100 粉才能用 OBS 开直播，直接脚本秒了，迟早药丸
 * bilibili_b2a/b2a.user.js
   * BV 号转原来的数字编号
 * coding
