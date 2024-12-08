@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bili Live Code Fetcher
 // @namespace    https://github.com/sffxzzp
-// @version      0.10
+// @version      0.11
 // @description  WTF is that 100 fans limit
 // @author       sffxzzp
 // @match        *://link.bilibili.com/p/center/index*
@@ -66,7 +66,12 @@
             data.append('csrf', this.getCookie('bili_jct'));
             data.append('visit_id', '');
             let res = await fetch('https://api.live.bilibili.com/room/v1/Room/startLive', {method: 'POST', body: data, credentials: 'include'}).then(res => res.json());
-            this.setInfo(`开播成功！<br>直播地址：${res.data.protocols[0].addr}<br>推流码：${res.data.protocols[0].code}`);
+            let idata = new FormData();
+            idata.append('csrf', this.getCookie('bili_jct'));
+            // action 2 是刷新并获取身份码
+            idata.append('action', 1);
+            let ires = await fetch('https://api.live.bilibili.com/xlive/open-platform/v1/common/operationOnBroadcastCode', {method: 'POST', body: data, credentials: 'include'}).then(res => res.json());
+            this.setInfo(`开播成功！<br>直播地址：${res.data.protocols[0].addr}<br>推流码：${res.data.protocols[0].code}<br>身份码：${ires.data.code}`);
         };
         blcf.prototype.stopLive = async function (roomid) {
             let data = new FormData();
