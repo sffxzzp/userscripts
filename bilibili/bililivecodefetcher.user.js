@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bili Live Code Fetcher
 // @namespace    https://github.com/sffxzzp
-// @version      0.12
+// @version      0.13
 // @description  WTF is that 100 fans limit
 // @author       sffxzzp
 // @match        *://link.bilibili.com/p/center/index*
@@ -60,7 +60,10 @@
             let data = new FormData();
             data.append('room_id', roomid);
             data.append('area_v2', this.getAreaSelected());
-            data.append('platform', 'pc');
+            // 直播平台 ['pc', 'web_link', 'pc_link', 'android_link']
+            // PC（第三方）, web 在线直播，PC（猜测是直播姬），安卓直播姬
+            // 暂且还不知道直播姬的是什么
+            data.append('platform', 'pc_link');
             data.append('csrf_token', this.getCookie('bili_jct'));
             data.append('csrf', this.getCookie('bili_jct'));
             data.append('visit_id', '');
