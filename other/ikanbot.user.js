@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.33
+// @version      0.40
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://fastly.jsdelivr.net/npm/hls.js@1.5.5/dist/hls.min.js
@@ -119,16 +119,19 @@
         art.on('fullscreen', hideScrollBar);
         art.on('fullscreenWeb', hideScrollBar);
         let dp = null;
+        unsafeWindow.fsWeb = false;
 
         document.onkeydown = function() {
             let video = art || document.querySelector('video');
             let pbrate = video.playbackRate || 1;
             let step = 30;
             function toggleFullscreen() { if (art) { art.fullscreen = !art.fullscreen; } else if (dp) { if (dp.fullScreen.isFullScreen()) { dp.fullScreen.cancel(); } else { dp.fullScreen.request(); }} else { if (!document.fullscreenElement) { video.requestFullscreen(); } else { document.exitFullscreen(); }}}
+            function toggleWebFullscreen() { if (art) { art.fullscreenWeb = !art.fullscreenWeb; } else if (dp) { if (dp.fullScreen.isFullScreen('web')) { dp.fullScreen.cancel('web'); } else { dp.fullScreen.request('web'); } } else { if (unsafeWindow.fsWeb) { video.style.height = ''; video.style.width = ''; video.style.position = ''; video.style.top = ''; video.style.left = ''; video.style.zIndex = 10; video.style.background = ''; document.body.style.overflow = ''; unsafeWindow.fsWeb = false; } else { video.style.height = '100vh'; video.style.width = '100vw'; video.style.position = 'fixed'; video.style.top = '0px'; video.style.left = '0px'; video.style.zIndex = 999999; video.style.background = 'black'; document.body.style.overflow = 'hidden'; unsafeWindow.fsWeb = true; } } }
             function notice(text) {if (art) { art.notice.show = text; } else if (dp) { dp.notice(text); }}
             if (event.key == ">" && event.shiftKey) {video.currentTime += step;notice(`快进 ${step} 秒`);}
             if (event.key == "<" && event.shiftKey) {video.currentTime -= step;notice(`快退 ${step} 秒`);}
             if (event.key == "f") {toggleFullscreen();}
+            if (event.key == "t") {toggleWebFullscreen();}
             if (event.key == "=" && event.repeat === false) {pbrate = pbrate * 2;}
             if (event.key == "-" && event.repeat === false) {pbrate = pbrate / 2;}
             if (event.key == " " && event.shiftKey) { if (art) {art.toggle()} else {video.paused == true ? video.play() : video.pause()} }
