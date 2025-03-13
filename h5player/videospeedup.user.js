@@ -1,10 +1,9 @@
 // ==UserScript==
 // @name         Anime SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      1.43
+// @version      1.51
 // @description  Enhance experiences of anime sites.
 // @author       sffxzzp
-// @match        *://www.zzzfun.one/*
 // @match        *://omofun.in/vod/play/*
 // @match        *://www.5dm.link/html5/player/*
 // @match        *://*/?url=age_*
@@ -12,6 +11,9 @@
 // @match        *://*/vip/?url=age_*
 // @match        *://*/*/*/a-pic.php*
 // @match        *://ani.gamer.com.tw/animeVideo.php*
+// @match        *://player.moedot.net/*
+// @match        *://jiexi.modujx01.com/?url=*
+// @match        *://www.agedm.org/play/*/*/*
 // @grant        GM_addStyle
 // @grant        GM_webRequest
 // @grant        unsafeWindow
@@ -38,15 +40,17 @@
     let adskipfunc = function () {
         let video = document.querySelector('div#video-container video');
         let adskip = document.querySelector('div#adSkipButton');
-        let adskiptimeout = setTimeout(function () {
-            if (adskip.classList.contains('enable')) {
-                video.muted = false;
-                adskip.click();
-                clearTimeout(adskiptimeout);
-            } else {
-                adskipfunc();
-            }
-        }, 1000);
+        if (adskip) {
+            let adskiptimeout = setTimeout(function () {
+                if (adskip.classList.contains('enable')) {
+                    video.muted = false;
+                    adskip.click();
+                    clearTimeout(adskiptimeout);
+                } else {
+                    adskipfunc();
+                }
+            }, 1000);
+        }
     };
     if (location.href.indexOf('ani.gamer.com.tw') >= 0) {
         let observer = new MutationObserver(function (mutationList) {
@@ -61,7 +65,8 @@
         let adobserver = new MutationObserver(function (mutationList) {
             for (let mutation of mutationList) {
                 let adskip = mutation.target.querySelector('div#adSkipButton');
-                if (adskip) {
+                let adskip1 = mutation.target.querySelector('div.videoAdUiSkipContainer');
+                if (adskip || adskip1) {
                     mutation.target.querySelector('video').muted = true;
                     adskipfunc();
                 }
@@ -70,36 +75,12 @@
         adobserver.observe(document.getElementById('ani_video'), {childList: true});
     }
 
-    // zzzfun 增加网页全屏按钮
-    if (location.href.indexOf('vod_play_id_') >= 0) {
-        let bar = document.querySelector('.p-oper');
-        let webPrev = document.querySelector('a.prev');
-        let webNext = document.querySelector('a.next');
-        let webFull = document.createElement('a');
-        webFull.onclick = function () {
-            let elem = document.querySelector('td#playleft > iframe');
-            if (!elem.getAttribute('isfull')) {
-                bar.classList.add('webfs');
-                document.body.style.overflow = "hidden";
-                webPrev.style = "position: fixed; top: 20px; right: 180px; z-index: 101; margin-right: 0;";
-                webNext.style = "position: fixed; top: 20px; right: 100px; z-index: 101; margin-right: 0;";
-                this.style = "position: fixed; top: 20px; right: 0; z-index: 101; margin-right: 10px;";
-                elem.style = "position: fixed; width: 100vw; height: 100vh; left: 0; top: 0; z-index: 100;";
-                elem.setAttribute('isfull', "true");
-            } else {
-                bar.classList.remove('webfs');
-                document.body.style.overflow = "auto";
-                webPrev.style = "";
-                webNext.style = "";
-                this.style = "";
-                elem.style = "";
-                elem.setAttribute('isfull', "");
-            }
-        };
-        webFull.href = "javascript:;";
-        webFull.className = "copy";
-        webFull.innerHTML = "网页全屏";
-        document.querySelector('div.p-oper').appendChild(webFull);
+    // agedm PC 屏蔽
+    if (location.href.indexOf('agedm') >= 0 && location.href.indexOf('play') >= 0) {
+        if (document.querySelector('div#cpraid') != null) {
+            https://m.agedm.org/#/play/20240076/1/1
+            location.href = location.href.replace('www.', 'm.').replace('.org/', '.org/#/');
+        }
     }
 
     // 增加快捷键
@@ -108,11 +89,63 @@
         let pbrate = video.playbackRate || 1;
         let step = 30;
         var toggleFullscreen = function () {
-            var fsElement = document.querySelector('#artplayer') || document.querySelector('#player') || document.querySelector('div.ABP-Player');
-            if (fsElement && !document.fullscreenElement) {
-                fsElement.requestFullscreen();
+            let art = unsafeWindow.Artplayer || null;
+            let dp = unsafeWindow.DPlayer || null;
+            if (art) {
+                let player = art.instances[0];
+                player.fullscreen = !player.fullscreen;
+            } else if (dp) {
+                if (dp.fullScreen.isFullScreen()) {
+                    dp.fullScreen.cancel();
+                } else {
+                    dp.fullScreen.request();
+                }
             } else {
-                document.exitFullscreen();
+                if (!document.fullscreenElement) {
+                    let fsElement = document.querySelector('#artplayer') || document.querySelector('#player') || document.querySelector('div.ABP-Player') || document.querySelector('div.art-video-player');
+                    fsElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+        }
+        var toggleFullscreenWeb = function () {
+            if (location.href.indexOf("ani.gamer.com.tw/animeVideo.php") >= 0) {
+                return;
+            }
+            let art = unsafeWindow.Artplayer || null;
+            let dp = unsafeWindow.DPlayer || null;
+            if (art) {
+                let player = art.instances[0];
+                player.fullscreenWeb = !player.fullscreenWeb;
+            } else if (dp) {
+                if (dp.fullScreen.isFullScreen('web')) {
+                    dp.fullScreen.cancel('web');
+                } else {
+                    dp.fullScreen.request('web');
+                }
+            } else {
+                if (unsafeWindow.fsWeb) {
+                    video.style.height = '';
+                    video.style.width = '';
+                    video.style.position = '';
+                    video.style.top = '';
+                    video.style.left = '';
+                    video.style.zIndex = 10;
+                    video.style.background = '';
+                    document.body.style.overflow = '';
+                    unsafeWindow.fsWeb = false;
+                } else {
+                    video.style.height = '100vh';
+                    video.style.width = '100vw';
+                    video.style.position = 'fixed';
+                    video.style.top = '0px';
+                    video.style.left = '0px';
+                    video.style.zIndex = 999999;
+                    video.style.background = 'black';
+                    document.body.style.overflow = 'hidden';
+                    unsafeWindow.fsWeb = true;
+                }
             }
         }
         var goVideo = function (direct) {
@@ -146,6 +179,7 @@
         if (event.key == ">" && event.shiftKey) {video.currentTime += step;}
         if (event.key == "<" && event.shiftKey) {video.currentTime -= step;}
         if (event.key == "f") {toggleFullscreen();}
+        if (event.key == "t") {toggleFullscreenWeb();}
         if (event.key == "=" && event.repeat === false) {pbrate = pbrate * 2;}
         if (event.key == "-" && event.repeat === false) {pbrate = pbrate / 2;}
         if (event.key == "+" && event.shiftKey) {pbrate += 0.5;}
