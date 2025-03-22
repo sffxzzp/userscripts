@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.33
+// @version      0.50
 // @description  show recent purchase of your steam cyber family (will exclude what you already have)
 // @author       sffxzzp
 // @match        *://*/*
@@ -11,6 +11,8 @@
 // @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
 // @grant        GM_notification
+// @grant        GM_registerMenuCommand
+// @grant        GM_unregisterMenuCommand
 // @connect      api.steampowered.com
 // @connect      store.steampowered.com
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/steam/steamcyberfamilynotify.user.js
@@ -41,6 +43,9 @@
     })();
     var csfn = (function () {
         var csfn = function () {};
+        csfn.prototype.notifyOn = GM_getValue('csfn_notify', true);
+        csfn.prototype.wishlistOn = GM_getValue('csfn_wishlist', true);
+        csfn.prototype.menu = [];
         csfn.prototype.getAccessToken = async function () {
             this.access_token = (await util.xhr({url: 'https://store.steampowered.com/pointssummary/ajaxgetasyncconfig', type: 'json'})).body.data.webapi_token;
         };
@@ -89,7 +94,7 @@
                 }
             });
             tmpList.sort(function (a, b) { return b.time - a.time });
-            return tmpList.slice(0, 99);
+            return tmpList;
         };
         csfn.prototype.secondsDisplay = function (seconds) {
             if (seconds <= 0) {
@@ -159,10 +164,7 @@
             });
             observer.observe(target, { childList: true, subtree: true });
         };
-        csfn.prototype.run = async function () {
-            if (location.href.indexOf('https://store.steampowered.com/account/familymanagement')>-1) {
-                this.coolDown();
-            }
+        csfn.prototype.notify = async function () {
             var lastcheck = GM_getValue('time') || 0;
             var lastrun = GM_getValue('lastrun') || 0;
             var timeCond = (new Date()).getTime() - 43200000;
@@ -201,6 +203,84 @@
                     });
                 } else {
                     GM_setValue('time', (new Date()).getTime() - 59400000);
+                }
+            }
+        };
+        csfn.prototype.wishlist = function () {
+            var _this = this;
+            setTimeout(function () {
+                if (unsafeWindow.SSR.reactRoot._internalRoot) {
+                    _this.initWishlist();
+                } else {
+                    _this.wishlist();
+                }
+            }, 1000);
+        };
+        csfn.prototype.initWishlist = function () {
+            var _this = this;
+            var wishlistDiv = document.querySelector("section > div:last-child");
+            var observer = new MutationObserver(function (recs) {
+                _this.updateWishlist();
+            });
+            observer.observe(wishlistDiv, { childList: true, subtree: true, characterData: true });
+        };
+        csfn.prototype.getAppid = function (link) {
+            let m = link.match(/app\/(\d+)/);
+            return m ? Number(m[1]) : null;
+        };
+        csfn.prototype.updateWishlist = function () {
+            var _this = this;
+            var familyOwnedGameList = GM_getValue('list') || [];
+            var familyOwnedGameAppids = [];
+            familyOwnedGameList.forEach(function (game) {
+                familyOwnedGameAppids.push(game.appid);
+            });
+            delete familyOwnedGameList;
+            var gameList = document.querySelector('div.Panel > div.Panel > div:has(div[data-index])');
+            gameList.querySelectorAll('div[data-index] > div').forEach(function (gameNode) {
+                let appid = _this.getAppid(gameNode.querySelector("a[href*='/app/']").href);
+                if (familyOwnedGameAppids.indexOf(appid)>0) {
+                    gameNode.style.background = "linear-gradient(to right, #47bfff 5%, #1a44c2 60%)";
+                }
+            });
+        };
+        csfn.prototype.clearMenu = function () {
+            this.menu.forEach(function (menuid) {
+                GM_unregisterMenuCommand(menuid);
+            });
+            this.menu = [];
+            this.registerMenu();
+        };
+        csfn.prototype.registerMenu = function () {
+            var _this = this;
+            _this.menu = [];
+            var notifyMenuId = GM_registerMenuCommand(_this.notifyOn ? '禁用通知' : '启用通知', function () {
+                _this.notifyOn = !_this.notifyOn;
+                GM_setValue('csfn_notify', _this.notifyOn);
+                _this.clearMenu();
+            });
+            _this.menu.push(notifyMenuId);
+            var wishlistMenuId = GM_registerMenuCommand(_this.wishlistOn ? '禁用愿望单高亮' : '启用愿望单高亮', function () {
+                _this.wishlistOn = !_this.wishlistOn;
+                GM_setValue('csfn_wishlist', _this.wishlistOn);
+                _this.clearMenu();
+                location.reload();
+            });
+            _this.menu.push(wishlistMenuId);
+        };
+        csfn.prototype.run = async function () {
+            this.registerMenu();
+            if (location.href.indexOf('https://store.steampowered.com/account/familymanagement')>-1) {
+                this.coolDown();
+            }
+            else if (location.href.indexOf('https://store.steampowered.com/wishlist/')>-1) {
+                if (this.wishlistOn) {
+                    this.wishlist();
+                }
+            }
+            else {
+                if (this.notifyOn) {
+                    this.notify();
                 }
             }
         };
