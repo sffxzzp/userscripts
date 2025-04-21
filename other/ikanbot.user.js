@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.50
+// @version      0.51
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://fastly.jsdelivr.net/npm/hls.js@1.1.3/dist/hls.min.js
@@ -149,8 +149,7 @@
                         title: document.getElementById("video_title").innerText,
                         name: nextEpisode.innerText,
                         date: (new Date()).getTime(),
-                    })
-                    video.scrollIntoView({behavior: "smooth", block: "center"});
+                    });
                 }
             }
             var goPrev = function () {goEpisode(true);}
