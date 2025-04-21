@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.41
+// @version      0.50
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://fastly.jsdelivr.net/npm/hls.js@1.1.3/dist/hls.min.js
@@ -127,11 +127,41 @@
             let step = 30;
             function toggleFullscreen() { if (art) { art.fullscreen = !art.fullscreen; } else if (dp) { if (dp.fullScreen.isFullScreen()) { dp.fullScreen.cancel(); } else { dp.fullScreen.request(); }} else { if (!document.fullscreenElement) { video.requestFullscreen(); } else { document.exitFullscreen(); }}}
             function toggleWebFullscreen() { if (art) { art.fullscreenWeb = !art.fullscreenWeb; } else if (dp) { if (dp.fullScreen.isFullScreen('web')) { dp.fullScreen.cancel('web'); } else { dp.fullScreen.request('web'); } } else { if (unsafeWindow.fsWeb) { video.style.height = ''; video.style.width = ''; video.style.position = ''; video.style.top = ''; video.style.left = ''; video.style.zIndex = 10; video.style.background = ''; document.body.style.overflow = ''; unsafeWindow.fsWeb = false; } else { video.style.height = '100vh'; video.style.width = '100vw'; video.style.position = 'fixed'; video.style.top = '0px'; video.style.left = '0px'; video.style.zIndex = 999999; video.style.background = 'black'; document.body.style.overflow = 'hidden'; unsafeWindow.fsWeb = true; } } }
+            function goEpisode(prev) {
+                let videoId = document.getElementById("current_id").value;
+                let nextEpisode = null;
+                if (prev) {
+                    nextEpisode = document.querySelector('.playing')?.previousElementSibling || null;
+                } else {
+                    nextEpisode = document.querySelector('.playing+div') || null;
+                }
+                if (nextEpisode != null) {
+                    art.switchUrl(nextEpisode.getAttribute('link'));
+                    document.querySelectorAll('div.lineData').forEach(function (node) {
+                        node.style.background = "white";
+                        node.classList.remove('playing');
+                    })
+                    nextEpisode.style.background = "cyan";
+                    nextEpisode.classList.add('playing');
+                    unsafeWindow.savePlayHistory({
+                        videoId: videoId,
+                        lineId: nextEpisode.id,
+                        title: document.getElementById("video_title").innerText,
+                        name: nextEpisode.innerText,
+                        date: (new Date()).getTime(),
+                    })
+                    video.scrollIntoView({behavior: "smooth", block: "center"});
+                }
+            }
+            var goPrev = function () {goEpisode(true);}
+            var goNext = function () {goEpisode(false);}
             function notice(text) {if (art) { art.notice.show = text; } else if (dp) { dp.notice(text); }}
             if (event.key == ">" && event.shiftKey) {video.currentTime += step;notice(`快进 ${step} 秒`);}
             if (event.key == "<" && event.shiftKey) {video.currentTime -= step;notice(`快退 ${step} 秒`);}
             if (event.key == "f") {toggleFullscreen();}
             if (event.key == "t") {toggleWebFullscreen();}
+            if (event.key == "p") {goPrev();}
+            if (event.key == "n") {goNext();}
             if (event.key == "=" && event.repeat === false) {pbrate = pbrate * 2;}
             if (event.key == "-" && event.repeat === false) {pbrate = pbrate / 2;}
             if (event.key == " " && event.shiftKey) { if (art) {art.toggle()} else {video.paused == true ? video.play() : video.pause()} }
@@ -170,8 +200,10 @@
                     art.switchUrl(this.getAttribute('link'));
                     document.querySelectorAll('div.lineData').forEach(function (node) {
                         node.style.background = "white";
+                        node.classList.remove('playing');
                     })
                     this.style.background = "cyan";
+                    this.classList.add('playing');
                     unsafeWindow.savePlayHistory({
                         videoId: videoId,
                         lineId: this.id,
