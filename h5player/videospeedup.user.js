@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Anime SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      1.51
+// @version      1.52
 // @description  Enhance experiences of anime sites.
 // @author       sffxzzp
 // @match        *://omofun.in/vod/play/*
@@ -13,7 +13,7 @@
 // @match        *://ani.gamer.com.tw/animeVideo.php*
 // @match        *://player.moedot.net/*
 // @match        *://jiexi.modujx01.com/?url=*
-// @match        *://www.agedm.org/play/*/*/*
+// @match        *://www.age*.*/play/*/*/*
 // @grant        GM_addStyle
 // @grant        GM_webRequest
 // @grant        unsafeWindow
@@ -180,8 +180,8 @@
         if (event.key == "<" && event.shiftKey) {video.currentTime -= step;}
         if (event.key == "f") {toggleFullscreen();}
         if (event.key == "t") {toggleFullscreenWeb();}
-        if (event.key == "=" && event.repeat === false) {pbrate = pbrate * 2;}
-        if (event.key == "-" && event.repeat === false) {pbrate = pbrate / 2;}
+        if (event.key == "=" && event.repeat === false) {pbrate = pbrate * 2; unsafeWindow.ratePress = true;}
+        if (event.key == "-" && event.repeat === false) {pbrate = pbrate / 2; unsafeWindow.ratePress = true;}
         if (event.key == "+" && event.shiftKey) {pbrate += 0.5;}
         if (event.key == "_" && event.shiftKey) {pbrate -= 0.5;}
         if (event.key == "!" && event.shiftKey) {pbrate = 1;}
@@ -197,8 +197,8 @@
     document.onkeyup = function() {
         let video = document.querySelector('video');
         let pbrate = video.playbackRate || 1;
-        if (event.key == "=") {pbrate = pbrate / 2;}
-        if (event.key == "-") {pbrate = pbrate * 2;}
+        if (event.key == "=" && unsafeWindow.ratePress) {pbrate = pbrate / 2; unsafeWindow.ratePress = false;}
+        if (event.key == "-" && unsafeWindow.ratePress) {pbrate = pbrate * 2; unsafeWindow.ratePress = false;}
         video.playbackRate = pbrate;
     };
 })();
