@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.51
+// @version      0.62
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://fastly.jsdelivr.net/npm/hls.js@1.1.3/dist/hls.min.js
@@ -10,6 +10,10 @@
 // @require      https://fastly.jsdelivr.net/npm/artplayer/dist/artplayer.js
 // @match        *://*.ikanbot.com/play/*
 // @grant        GM_webRequest
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_registerMenuCommand
+// @grant        GM_unregisterMenuCommand
 // @grant        unsafeWindow
 // @updateURL    https://raw.githubusercontent.com/sffxzzp/userscripts/master/other/ikanbot.user.js
 // @downloadURL  https://raw.githubusercontent.com/sffxzzp/userscripts/master/other/ikanbot.user.js
@@ -26,6 +30,20 @@
     }
     let intID = setInterval(function () {unload()}, 1000);
 
+    let menuid;
+    let NoAD = GM_getValue('ikan_noad', false);
+
+    var initMenu = function () {
+        menuid = GM_registerMenuCommand(NoAD ? '关闭去广告' : '开启去广告', function () {
+            NoAD = !NoAD;
+            GM_setValue('ikan_noad', NoAD);
+            GM_unregisterMenuCommand(menuid);
+            initMenu();
+            location.reload();
+        });
+    }
+    initMenu();
+
     // the rest of the code should run when document loaded instead of document-start
     document.addEventListener('DOMContentLoaded', init);
     function init() {
@@ -35,7 +53,12 @@
                     art.hls.destroy();
                 }
                 const hls = new Hls();
-                hls.loadSource(url);
+                let NoAD = GM_getValue('ikan_noad', false);
+                if (NoAD) {
+                    hls.loadSource("https://m3u8.kanojo.eu.org/?url="+url);
+                } else {
+                    hls.loadSource(url);
+                }
                 hls.attachMedia(video);
                 art.hls = hls;
                 art.on('destroy', function () {
@@ -88,6 +111,7 @@
         };
 
         Artplayer.PLAYBACK_RATE = [0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4, 8];
+        Artplayer.ASPECT_RATIO = ['default', '4:3', '16:9', '21:9'];
 
         document.querySelector('video').pause();
         let container = document.querySelector('#pc-player').parentNode;
@@ -157,12 +181,14 @@
             function notice(text) {if (art) { art.notice.show = text; } else if (dp) { dp.notice(text); }}
             if (event.key == ">" && event.shiftKey) {video.currentTime += step;notice(`快进 ${step} 秒`);}
             if (event.key == "<" && event.shiftKey) {video.currentTime -= step;notice(`快退 ${step} 秒`);}
+            if (event.key == "a" && event.shiftKey) { if (art) {art.aspectRatio = 'default'} }
+            if (event.key == "s" && event.shiftKey) { if (art) {art.aspectRatio = '21:9'} }
             if (event.key == "f") {toggleFullscreen();}
             if (event.key == "t") {toggleWebFullscreen();}
             if (event.key == "p") {goPrev();}
             if (event.key == "n") {goNext();}
-            if (event.key == "=" && event.repeat === false) {pbrate = pbrate * 2;}
-            if (event.key == "-" && event.repeat === false) {pbrate = pbrate / 2;}
+            if (event.key == "=" && event.repeat === false) {pbrate = pbrate * 2; unsafeWindow.ratePress = true;}
+            if (event.key == "-" && event.repeat === false) {pbrate = pbrate / 2; unsafeWindow.ratePress = true;}
             if (event.key == " " && event.shiftKey) { if (art) {art.toggle()} else {video.paused == true ? video.play() : video.pause()} }
             if (event.key == "+" && event.shiftKey) {pbrate += 0.5;}
             if (event.key == "_" && event.shiftKey) {pbrate -= 0.5;}
@@ -180,8 +206,8 @@
             let video = art || document.querySelector('video');
             let pbrate = video.playbackRate || 1;
             function notice(text) {if (art) { art.notice.show = text; } else if (dp) { dp.notice(text); }}
-            if (event.key == "=") {pbrate = pbrate / 2;}
-            if (event.key == "-") {pbrate = pbrate * 2;}
+            if (event.key == "=" && unsafeWindow.ratePress) {pbrate = pbrate / 2; unsafeWindow.ratePress = false;}
+            if (event.key == "-" && unsafeWindow.ratePress) {pbrate = pbrate * 2; unsafeWindow.ratePress = false;}
             video.playbackRate = pbrate;
             if (pbrate != video.playbackRate) {notice(`速度：${pbrate}x`);}
         };
