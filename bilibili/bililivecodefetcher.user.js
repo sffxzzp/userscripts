@@ -2,7 +2,7 @@
 // @name         Bili Live Code Fetcher
 // @namespace    https://github.com/sffxzzp
 // @version      0.13
-// @description  WTF is that 100 fans limit
+// @description  WTF is that (100)x 5000 fans limit
 // @author       sffxzzp
 // @match        *://link.bilibili.com/p/center/index*
 // @grant        GM_addStyle
