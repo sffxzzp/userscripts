@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bili Live Code Fetcher
 // @namespace    https://github.com/sffxzzp
-// @version      0.13
+// @version      0.15
 // @description  WTF is that (100)x 5000 fans limit
 // @author       sffxzzp
 // @match        *://link.bilibili.com/p/center/index*
@@ -33,13 +33,17 @@
     })();
     let blcf = (function () {
         let blcf = function () {};
+        // 直播平台 ['pc', 'web_link', 'pc_link', 'android_link']
+        // PC（第三方）, web 在线直播，PC（猜测是直播姬），安卓直播姬
+        // 暂且还不知道直播姬的是什么
+        blcf.prototype.platform = 'pc_link';
         blcf.prototype.getCookie = function (name) {
             const value = `; ${document.cookie}`;
             const parts = value.split(`; ${name}=`);
             if (parts.length === 2) return parts.pop().split(';').shift();
         };
         blcf.prototype.getRoomID = async function () {
-            let room = await fetch('https://api.live.bilibili.com/xlive/app-blink/v1/room/GetInfo?platform=pc', {credentials: 'include'}).then(res => res.json());
+            let room = await fetch('https://api.live.bilibili.com/xlive/app-blink/v1/room/GetInfo?platform=' + this.platform, {credentials: 'include'}).then(res => res.json());
             return room.data.room_id;
         };
         blcf.prototype.getAreaList = async function () {
@@ -60,25 +64,24 @@
             let data = new FormData();
             data.append('room_id', roomid);
             data.append('area_v2', this.getAreaSelected());
-            // 直播平台 ['pc', 'web_link', 'pc_link', 'android_link']
-            // PC（第三方）, web 在线直播，PC（猜测是直播姬），安卓直播姬
-            // 暂且还不知道直播姬的是什么
-            data.append('platform', 'pc_link');
+            data.append('platform', this.platform);
             data.append('csrf_token', this.getCookie('bili_jct'));
             data.append('csrf', this.getCookie('bili_jct'));
             data.append('visit_id', '');
             let res = await fetch('https://api.live.bilibili.com/room/v1/Room/startLive', {method: 'POST', body: data, credentials: 'include'}).then(res => res.json());
-            let idata = new FormData();
-            idata.append('csrf', this.getCookie('bili_jct'));
+            // 现在界面自带身份码了
+            // let idata = new FormData();
+            // idata.append('csrf', this.getCookie('bili_jct'));
             // action 2 是刷新并获取身份码
-            idata.append('action', 1);
-            let ires = await fetch('https://api.live.bilibili.com/xlive/open-platform/v1/common/operationOnBroadcastCode', {method: 'POST', body: idata, credentials: 'include'}).then(res => res.json());
-            this.setInfo(`开播成功！<br>直播地址：${res.data.protocols[0].addr}<br>推流码：${res.data.protocols[0].code}<br>身份码：${ires.data.code}`);
+            // idata.append('action', 1);
+            // let ires = await fetch('https://api.live.bilibili.com/xlive/open-platform/v1/common/operationOnBroadcastCode', {method: 'POST', body: idata, credentials: 'include'}).then(res => res.json());
+            // this.setInfo(`开播成功！<br>直播地址：${res.data.protocols[0].addr}<br>推流码：${res.data.protocols[0].code}<br>身份码：${ires.data.code}`);
+            this.setInfo(`开播成功！<br>直播地址：${res.data.protocols[0].addr}<br>推流码：${res.data.protocols[0].code}`);
         };
         blcf.prototype.stopLive = async function (roomid) {
             let data = new FormData();
             data.append('room_id', roomid);
-            data.append('platform', 'pc');
+            data.append('platform', this.platform);
             data.append('csrf_token', this.getCookie('bili_jct'));
             data.append('csrf', this.getCookie('bili_jct'));
             data.append('visit_id', '');
