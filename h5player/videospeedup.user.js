@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Anime SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      1.52
+// @version      1.60
 // @description  Enhance experiences of anime sites.
 // @author       sffxzzp
 // @match        *://omofun.in/vod/play/*
@@ -15,6 +15,7 @@
 // @match        *://jiexi.modujx01.com/?url=*
 // @match        *://www.age*.*/play/*/*/*
 // @grant        GM_addStyle
+// @grant        GM_openInTab
 // @grant        GM_webRequest
 // @grant        unsafeWindow
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/h5player/videospeedup.user.js
@@ -174,12 +175,21 @@
                 target.click();
             }
         };
+        var prtScr = function () {
+            let canvas = document.createElement('canvas');
+            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth;
+            let ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            GM_openInTab(canvas.toDataURL('image/jpeg'), false);
+        };
         if (event.key == "n") {goVideo(1);}
         if (event.key == "p") {goVideo(-1);}
         if (event.key == ">" && event.shiftKey) {video.currentTime += step;}
         if (event.key == "<" && event.shiftKey) {video.currentTime -= step;}
         if (event.key == "f") {toggleFullscreen();}
         if (event.key == "t") {toggleFullscreenWeb();}
+        if (event.key == "P" && event.shiftKey) {prtScr();}
         if (event.key == "=" && event.repeat === false) {pbrate = pbrate * 2; unsafeWindow.ratePress = true;}
         if (event.key == "-" && event.repeat === false) {pbrate = pbrate / 2; unsafeWindow.ratePress = true;}
         if (event.key == "+" && event.shiftKey) {pbrate += 0.5;}
