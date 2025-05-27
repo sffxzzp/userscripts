@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bili Live Code Fetcher
 // @namespace    https://github.com/sffxzzp
-// @version      0.15
+// @version      0.17
 // @description  WTF is that (100)x 5000 fans limit
 // @author       sffxzzp
 // @match        *://link.bilibili.com/p/center/index*
@@ -94,7 +94,7 @@
             const arealist = await _this.getAreaList();
             const isLive = await _this.getLiveStatus(roomid);
 
-            GM_addStyle(`#blcf_areaid { height: 25px; padding: 2px 8px; line-height: 25px; border: 1px solid #aaa; border-radius: 4px; background-color: #fff; outline: none; } .blcf_button { margin-left: 10px; background-color: #23ade5; color: #fff; border-radius: 4px; padding: 3px 12px; } .blcf_button:disabled { color: #b4b4b4; background-color: #e9eaec; }`);
+            GM_addStyle(`.pclink-guide { display: none !important; } #blcf_areaid { height: 25px; padding: 2px 8px; line-height: 25px; border: 1px solid #aaa; border-radius: 4px; background-color: #fff; outline: none; } .blcf_button { margin-left: 10px; background-color: #23ade5; color: #fff; border-radius: 4px; padding: 3px 12px; } .blcf_button:disabled { color: #b4b4b4; background-color: #e9eaec; }`);
 
             let container = document.querySelector('section.live-setting-ctnr div.hint');
 
@@ -113,7 +113,7 @@
             container.appendChild(select);
 
             let startLive = util.createElement({node: 'button', content: {class: 'blcf_button'}, html: '开播'});
-            if (isLive) {
+            if (isLive == 1) {
                 startLive.disabled = true;
             }
             startLive.onclick = function () {
@@ -124,7 +124,7 @@
             container.appendChild(startLive);
 
             let stopLive = util.createElement({node: 'button', content: {class: 'blcf_button'}, html: '关播'});
-            if (!isLive) {
+            if (isLive != 1) {
                 stopLive.disabled = true;
             }
             stopLive.onclick = function () {
