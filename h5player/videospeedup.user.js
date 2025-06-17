@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Anime SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      1.60
+// @version      1.61
 // @description  Enhance experiences of anime sites.
 // @author       sffxzzp
 // @match        *://omofun.in/vod/play/*
@@ -74,6 +74,17 @@
             }
         });
         adobserver.observe(document.getElementById('ani_video'), {childList: true});
+    }
+    if (location.href.indexOf('player.moedot.net') >= 0) {
+        let observer = new MutationObserver(function (mutationList) {
+            for (let mutation of mutationList) {
+                let skipbtn = mutation.target.querySelector('a.ec-ok') || mutation.target.querySelector('a.ec-no');
+                if (skipbtn) {
+                    skipbtn.click();
+                }
+            }
+        });
+        observer.observe(document.body, {childList: true, subtree: true})
     }
 
     // agedm PC 屏蔽
@@ -150,6 +161,9 @@
             }
         }
         var goVideo = function (direct) {
+            if (location.href.indexOf('player.moedot.net') >= 0) {
+                location.href = decodeURIComponent(location.href).replace(/(\d+)\.mp4$/, (_, n) => String(+n+(direct > 0 ? 1 : -1)).padStart(n.length, '0') + '.mp4');
+            }
             let target = "";
             let next = "";
             let prev = "";
