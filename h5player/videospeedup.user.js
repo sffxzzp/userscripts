@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Anime SpeedUp
 // @namespace    https://github.com/sffxzzp
-// @version      1.61
+// @version      1.70
 // @description  Enhance experiences of anime sites.
 // @author       sffxzzp
 // @match        *://omofun.in/vod/play/*
@@ -13,7 +13,9 @@
 // @match        *://ani.gamer.com.tw/animeVideo.php*
 // @match        *://player.moedot.net/*
 // @match        *://jiexi.modujx01.com/?url=*
-// @match        *://www.age*.*/play/*/*/*
+// @include      *://www.agedm.*/play/*/*/*
+// @match        *://dm.xifanacg.com/watch/*/*/*.html
+// @match        *://dm1.xfdm.pro/watch/*/*/*.html
 // @grant        GM_addStyle
 // @grant        GM_openInTab
 // @grant        GM_webRequest
@@ -23,6 +25,9 @@
 // ==/UserScript==
 
 (function() {
+    // 输出当前页面地址
+    console.log(location.href);
+
     // 尝试屏蔽广告
     GM_webRequest([
         { selector: '*://www.googletagmanager.com/*', action: 'cancel' },
@@ -36,6 +41,20 @@
 
     // 一些界面微调
     GM_addStyle('.p-oper { position: sticky; bottom: 0; } .p-oper.webfs { position: relative; } .ABP-Comment-List, div#egg_mask, div#egg_box { display: none; } .ABP-Unit .ABP-Player { width: unset; } .BH_background .container-player .player .videoframe.vjs-fullwindow {height: 100vh !important;} body:has(div.video.fullwindow) { overflow: hidden; }');
+
+
+    // 处理 ArtPlayer 自动 Focus 问题
+    let setFocusArt = function () {
+        setTimeout(function () {
+            let artplayer = unsafeWindow.Artplayer;
+            if (artplayer && artplayer.instances && artplayer.instances.length > 0) {
+                artplayer.instances[0].isFocus = true;
+            } else {
+                setFocusArt();
+            }
+        }, 1000);
+    }
+    setFocusArt();
 
     // 动画疯年龄验证跳过、广告到时间跳过
     let adskipfunc = function () {
@@ -53,6 +72,7 @@
             }, 1000);
         }
     };
+    // 处理动画疯广告自动 30s 跳过，以及年龄弹窗
     if (location.href.indexOf('ani.gamer.com.tw') >= 0) {
         let observer = new MutationObserver(function (mutationList) {
             for (let mutation of mutationList) {
@@ -75,24 +95,52 @@
         });
         adobserver.observe(document.getElementById('ani_video'), {childList: true});
     }
+    // 处理稀饭动漫的 10s 等待
     if (location.href.indexOf('player.moedot.net') >= 0) {
         let observer = new MutationObserver(function (mutationList) {
             for (let mutation of mutationList) {
                 let skipbtn = mutation.target.querySelector('a.ec-ok') || mutation.target.querySelector('a.ec-no');
                 if (skipbtn) {
                     skipbtn.click();
+                    setFocusArt();
                 }
             }
         });
-        observer.observe(document.body, {childList: true, subtree: true})
+        observer.observe(document.body, {childList: true, subtree: true});
     }
-
-    // agedm PC 屏蔽
+    // 通用上下页监听
+    let messageListener = function (selector) {
+        console.log("listening " + selector);
+        unsafeWindow.addEventListener("message", function (event) {
+            const data = event.data;
+            if (data.command == 'govideo') {
+                let current = document.querySelector(selector);
+                let target = "#";
+                let sibling = (data.next) ? current.nextElementSibling : (data.prev) ? current.previousElementSibling : null;
+                if (sibling) {
+                    let link = sibling.tagName.toLowerCase() === 'a' ? sibling : sibling.querySelector('a');
+                    if (link && link.href) {
+                        target = link.href;
+                    }
+                }
+                if (target !== "#") {
+                    location.href = target;
+                }
+            }
+        });
+    };
+    // 稀饭动漫上下页监听
+    if (location.href.indexOf('xfdm.pro') >= 0 || location.href.indexOf('dm.xifanacg.com') >= 0) {
+        messageListener("ul.anthology-list-play > li.on");
+    }
+    // age动漫
     if (location.href.indexOf('agedm') >= 0 && location.href.indexOf('play') >= 0) {
+        // PC 屏蔽跳转手机版
         if (document.querySelector('div#cpraid') != null) {
-            https://m.agedm.org/#/play/20240076/1/1
             location.href = location.href.replace('www.', 'm.').replace('.org/', '.org/#/');
         }
+        // 上下页监听
+        messageListener("ul.video_detail_episode > li:has(div[class*=playing])");
     }
 
     // 增加快捷键
@@ -160,33 +208,41 @@
                 }
             }
         }
+        var goVideoSel = function (selector, direct) {
+            let current = document.querySelector(selector);
+            if (!current) return;
+            let target = "#";
+            let sibling = (direct > 0) ? current.nextElementSibling : (direct < 0) ? current.previousElementSibling : null;
+            if (sibling) {
+                let link = sibling.tagName.toLowerCase() === 'a' ? sibling : sibling.querySelector('a');
+                if (link && link.href) {
+                    target = link.href;
+                }
+            }
+            if (target !== "#") {
+                location.href = target;
+            }
+        };
         var goVideo = function (direct) {
-            if (location.href.indexOf('player.moedot.net') >= 0) {
-                location.href = decodeURIComponent(location.href).replace(/(\d+)\.mp4$/, (_, n) => String(+n+(direct > 0 ? 1 : -1)).padStart(n.length, '0') + '.mp4');
-            }
-            let target = "";
-            let next = "";
-            let prev = "";
-            let win;
             if (location.href.indexOf("ani.gamer.com.tw/animeVideo.php") >= 0) {
-                win = window;
-                next = "button.vjs-next-button";
-                prev = "button.vjs-pre-button";
+                let next = "button.vjs-next-button";
+                let prev = "button.vjs-pre-button";
+                let target = document.querySelector(direct > 0 ? next : prev);
+                if (target != null) {
+                    target.click();
+                }
+            } else if (location.href.indexOf('omofun') >= 0) {
+                goVideoSel("div.module-play-list > div.module-play-list-content > a:has(.playon)", direct);
+            } else if (location.href.indexOf('5dm') >= 0) {
+                if (direct > 0) {
+                    unsafeWindow.YZM.video.next();
+                }
             } else {
-                win = window.parent;
-                next = "a.next";
-                prev = "a.prev";
-            }
-            if (direct > 0) {
-                target = next;
-            } else if (direct < 0) {
-                target = prev;
-            }
-            if (target != "") {
-                target = win.document.querySelector(target);
-            }
-            if (target != null) {
-                target.click();
+                unsafeWindow.parent.postMessage({
+                    command: "govideo",
+                    prev: direct < 0,
+                    next: direct > 0,
+                }, "*");
             }
         };
         var prtScr = function () {
