@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.51
+// @version      0.60
 // @description  show recent purchase of your steam cyber family (will exclude what you already have)
 // @author       sffxzzp
 // @match        *://*/*
@@ -41,24 +41,28 @@
         };
         return util;
     })();
-    var csfn = (function () {
-        var csfn = function () {};
-        csfn.prototype.notifyOn = GM_getValue('csfn_notify', true);
-        csfn.prototype.wishlistOn = GM_getValue('csfn_wishlist', true);
-        csfn.prototype.menu = [];
-        csfn.prototype.getAccessToken = async function () {
+    var scfn = (function () {
+        var scfn = function () {};
+        scfn.prototype.notifyOn = GM_getValue('scfn_notify', true);
+        scfn.prototype.wishlistOn = GM_getValue('scfn_wishlist', true);
+        scfn.prototype.recentOn = GM_getValue('scfn_recent', true);
+        scfn.prototype.menu = [];
+        scfn.prototype.getAccessToken = async function () {
             this.access_token = (await util.xhr({url: 'https://store.steampowered.com/pointssummary/ajaxgetasyncconfig', type: 'json'})).body.data.webapi_token;
         };
-        csfn.prototype.getFamilyData = async function () {
+        scfn.prototype.getFamilyData = async function () {
             return (await util.xhr({url: `https://api.steampowered.com/IFamilyGroupsService/GetFamilyGroupForUser/v1/?include_family_group_response=true&access_token=${this.access_token}`, type: 'json'})).body.response;
         };
-        csfn.prototype.getMemberData = async function (reqStr) {
+        scfn.prototype.getMemberData = async function (reqStr) {
             return (await util.xhr({url: `https://api.steampowered.com/IPlayerService/GetPlayerLinkDetails/v1/?access_token=${this.access_token}${reqStr}`, type: 'json'})).body.response.accounts;
         };
-        csfn.prototype.getGameList = async function (family_groupid) {
+        scfn.prototype.getGameList = async function (family_groupid) {
             return (await util.xhr({url: `https://api.steampowered.com/IFamilyGroupsService/GetSharedLibraryApps/v1/?family_groupid=${family_groupid}&include_own=true&access_token=${this.access_token}`, type: 'json'})).body.response;
         };
-        csfn.prototype.getMembers = async function (members) {
+        scfn.prototype.getRecentlyPlayedGames = async function (steamid) {
+            return (await util.xhr({url: `https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?access_token=${this.access_token}&steamid=${steamid}&format=json`, type: 'json'})).body.response.games;
+        };
+        scfn.prototype.getMembers = async function (members) {
             var family_members = {};
             var reqStr = "";
             for (let i = 0; i < members.length; i++) {
@@ -71,7 +75,7 @@
             });
             return family_members;
         };
-        csfn.prototype.getRecentList = async function () {
+        scfn.prototype.getRecentBuyList = async function () {
             await this.getAccessToken();
             var familyData = await this.getFamilyData();
             var family_groupid = familyData.family_groupid;
@@ -96,7 +100,7 @@
             tmpList.sort(function (a, b) { return b.time - a.time });
             return tmpList;
         };
-        csfn.prototype.secondsDisplay = function (seconds) {
+        scfn.prototype.secondsDisplay = function (seconds) {
             if (seconds <= 0) {
                 return "无冷却时间";
             }
@@ -122,11 +126,14 @@
             }
             return outStr;
         };
-        csfn.prototype.displayCoolDown = async function () {
+        scfn.prototype.displayCoolDown = async function () {
+            await this.getAccessToken();
             var _this = this;
             var cdData = GM_getValue("cddata") || null;
+            var cdTime = GM_getValue('cdtime') || 0;
+            var cdTimeCond = (new Date()).getTime() - 86400000;
             var currentTime = parseInt((new Date()).getTime() / 1000);
-            if (cdData == null) {
+            if (cdData == null || cdTime < cdTimeCond) {
                 await this.getAccessToken();
                 var familyData = await this.getFamilyData();
                 var family_groupid = familyData.family_groupid;
@@ -139,18 +146,40 @@
                     };
                 }
                 GM_setValue("cddata", cdData);
+                GM_setValue("cdtime", (new Date()).getTime());
             }
-            document.querySelectorAll('div.avatarHolder ~ div').forEach(function (node) {
+            document.querySelectorAll('div.avatarHolder ~ div').forEach(async function (node) {
                 if (node.querySelector('div.scfn-cd')) {return}
                 var nickname = node.querySelector('div > div > div').firstChild.nodeValue;
+                if (!cdData[nickname]) {
+                    return
+                }
                 var cdDiv = document.createElement('div');
                 cdDiv.className = "scfn-cd"
                 cdDiv.style = "font-size: 14px; color: darkgray";
                 cdDiv.innerHTML = _this.secondsDisplay(cdData[nickname].cooldown - currentTime);
                 node.appendChild(cdDiv);
+                if (_this.recentOn) {
+                    var games = await _this.getRecentlyPlayedGames(cdData[nickname].steamid);
+                    if (!!games) {
+                        let recentDiv = document.createElement('div');
+                        recentDiv.style = "font-size: 14px; line-height: 24px; color: gray;"
+                        recentDiv.innerHTML = "最近游玩："
+                        for (let game of games) {
+                            let gameDiv = document.createElement('a');
+                            gameDiv.className = "scfn-recent";
+                            gameDiv.style = "font-size: 14px; line-height: 24px; color: darkgray; display: block;";
+                            gameDiv.href = `https://store.steampowered.com/app/${game.appid}`;
+                            gameDiv.target = "_blank";
+                            gameDiv.innerHTML = `<img src="https://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.img_icon_url}.jpg" style="width: 24px; height: 24px;" alt="${game.name}" /> ${game.name}`;
+                            recentDiv.appendChild(gameDiv);
+                        }
+                        node.appendChild(recentDiv);
+                    }
+                }
             });
         };
-        csfn.prototype.coolDown = function () {
+        scfn.prototype.coolDown = function () {
             var _this = this;
             var target = document.querySelector('div[data-featuretarget="family-management"]');
             var observer = new MutationObserver(function (recs) {
@@ -164,7 +193,7 @@
             });
             observer.observe(target, { childList: true, subtree: true });
         };
-        csfn.prototype.notify = async function () {
+        scfn.prototype.notify = async function () {
             var lastcheck = GM_getValue('time') || 0;
             var lastrun = GM_getValue('lastrun') || 0;
             var timeCond = (new Date()).getTime() - 43200000;
@@ -178,10 +207,10 @@
                 });
                 var newList = [];
                 try {
-                    newList = await this.getRecentList();
+                    newList = await this.getRecentBuyList();
                 }
                 catch {
-                    newList = await this.getRecentList();
+                    newList = await this.getRecentBuyList();
                 }
                 var pushList = [];
                 newList.forEach(function (game) {
@@ -206,7 +235,7 @@
                 }
             }
         };
-        csfn.prototype.wishlist = function () {
+        scfn.prototype.wishlist = function () {
             var _this = this;
             setTimeout(function () {
                 if (unsafeWindow.SSR.reactRoot._internalRoot) {
@@ -216,7 +245,7 @@
                 }
             }, 1000);
         };
-        csfn.prototype.initWishlist = function () {
+        scfn.prototype.initWishlist = function () {
             var _this = this;
             var wishlistDiv = document.querySelector("section > div:last-child");
             var observer = new MutationObserver(function (recs) {
@@ -224,11 +253,11 @@
             });
             observer.observe(wishlistDiv, { childList: true, subtree: true, characterData: true });
         };
-        csfn.prototype.getAppid = function (link) {
+        scfn.prototype.getAppid = function (link) {
             let m = link.match(/app\/(\d+)/);
             return m ? Number(m[1]) : null;
         };
-        csfn.prototype.updateWishlist = function () {
+        scfn.prototype.updateWishlist = function () {
             var _this = this;
             var familyOwnedGameList = GM_getValue('list') || [];
             var familyOwnedGameAppids = [];
@@ -237,38 +266,45 @@
             });
             delete familyOwnedGameList;
             var gameList = document.querySelector('div.Panel > div.Panel > div:has(div[data-index])');
-            gameList.querySelectorAll('div[data-index] > div > div').forEach(function (gameNode) {
+            gameList.querySelectorAll('div[data-index] > div').forEach(function (gameNode) {
                 let appid = _this.getAppid(gameNode.querySelector("a[href*='/app/']").href);
                 if (familyOwnedGameAppids.indexOf(appid)>0) {
                     gameNode.style.background = "linear-gradient(to right, #47bfff 5%, #1a44c2 60%)";
                 }
             });
         };
-        csfn.prototype.clearMenu = function () {
+        scfn.prototype.clearMenu = function () {
             this.menu.forEach(function (menuid) {
                 GM_unregisterMenuCommand(menuid);
             });
             this.menu = [];
             this.registerMenu();
         };
-        csfn.prototype.registerMenu = function () {
+        scfn.prototype.registerMenu = function () {
             var _this = this;
             _this.menu = [];
             var notifyMenuId = GM_registerMenuCommand(_this.notifyOn ? '禁用通知' : '启用通知', function () {
                 _this.notifyOn = !_this.notifyOn;
-                GM_setValue('csfn_notify', _this.notifyOn);
+                GM_setValue('scfn_notify', _this.notifyOn);
                 _this.clearMenu();
             });
             _this.menu.push(notifyMenuId);
             var wishlistMenuId = GM_registerMenuCommand(_this.wishlistOn ? '禁用愿望单高亮' : '启用愿望单高亮', function () {
                 _this.wishlistOn = !_this.wishlistOn;
-                GM_setValue('csfn_wishlist', _this.wishlistOn);
+                GM_setValue('scfn_wishlist', _this.wishlistOn);
                 _this.clearMenu();
                 location.reload();
             });
             _this.menu.push(wishlistMenuId);
+            var recentMenuId = GM_registerMenuCommand(_this.recentOn ? '禁用最近游玩' : '启用最近游玩', function () {
+                _this.recentOn = !_this.recentOn;
+                GM_setValue('scfn_recent', _this.recentOn);
+                _this.clearMenu();
+                location.reload();
+            });
+            _this.menu.push(recentMenuId);
         };
-        csfn.prototype.run = async function () {
+        scfn.prototype.run = async function () {
             this.registerMenu();
             if (location.href.indexOf('https://store.steampowered.com/account/familymanagement')>-1) {
                 this.coolDown();
@@ -284,8 +320,8 @@
                 }
             }
         };
-        return csfn;
+        return scfn;
     })();
-    var s = new csfn();
+    var s = new scfn();
     s.run();
 })();
