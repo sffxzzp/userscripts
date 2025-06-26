@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.60
+// @version      0.61
 // @description  show recent purchase of your steam cyber family (will exclude what you already have)
 // @author       sffxzzp
 // @match        *://*/*
@@ -148,12 +148,10 @@
                 GM_setValue("cddata", cdData);
                 GM_setValue("cdtime", (new Date()).getTime());
             }
-            document.querySelectorAll('div.avatarHolder ~ div').forEach(async function (node) {
-                if (node.querySelector('div.scfn-cd')) {return}
+            for (let node of document.querySelectorAll('div.avatarHolder ~ div')) {
+                if (node.querySelector('div.scfn-cd')) {continue}
                 var nickname = node.querySelector('div > div > div').firstChild.nodeValue;
-                if (!cdData[nickname]) {
-                    return
-                }
+                if (!cdData[nickname]) {continue}
                 var cdDiv = document.createElement('div');
                 cdDiv.className = "scfn-cd"
                 cdDiv.style = "font-size: 14px; color: darkgray";
@@ -177,7 +175,7 @@
                         node.appendChild(recentDiv);
                     }
                 }
-            });
+            };
         };
         scfn.prototype.coolDown = function () {
             var _this = this;
