@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.61
+// @version      0.62
 // @description  show recent purchase of your steam cyber family (will exclude what you already have)
 // @author       sffxzzp
 // @match        *://*/*
@@ -71,7 +71,10 @@
             }
             var memberData = await this.getMemberData(reqStr);
             memberData.forEach(function (member) {
-                family_members[member.public_data.steamid] = member.public_data.persona_name;
+                family_members[member.public_data.steamid] = {
+                    name: member.public_data.persona_name,
+                    profile_url: member.public_data.profile_url,
+                };
             });
             return family_members;
         };
@@ -87,7 +90,7 @@
                 if (game.owner_steamids.indexOf(steamid) == -1) {
                     let ownersArr = [];
                     game.owner_steamids.forEach(function (steamid) {
-                        ownersArr.push(family_members[steamid]);
+                        ownersArr.push(family_members[steamid].name);
                     });
                     tmpList.push({
                         appid: game.appid,
@@ -134,13 +137,12 @@
             var cdTimeCond = (new Date()).getTime() - 86400000;
             var currentTime = parseInt((new Date()).getTime() / 1000);
             if (cdData == null || cdTime < cdTimeCond) {
-                await this.getAccessToken();
                 var familyData = await this.getFamilyData();
                 var family_groupid = familyData.family_groupid;
                 var family_members = await this.getMembers(familyData.family_group.members);
                 cdData = {};
                 for (let i = 0; i < familyData.family_group.members.length; i++) {
-                    cdData[family_members[familyData.family_group.members[i].steamid]] = {
+                    cdData[family_members[familyData.family_group.members[i].steamid].profile_url] = {
                         steamid: familyData.family_group.members[i].steamid,
                         cooldown: familyData.family_group.members[i].cooldown_seconds_remaining == 0 ? 0 : familyData.family_group.members[i].cooldown_seconds_remaining + currentTime,
                     };
@@ -148,17 +150,19 @@
                 GM_setValue("cddata", cdData);
                 GM_setValue("cdtime", (new Date()).getTime());
             }
-            for (let node of document.querySelectorAll('div.avatarHolder ~ div')) {
+            for (let node of document.querySelectorAll('a:has(div.avatarHolder)')) {
                 if (node.querySelector('div.scfn-cd')) {continue}
-                var nickname = node.querySelector('div > div > div').firstChild.nodeValue;
-                if (!cdData[nickname]) {continue}
+                var segments = node.href.replace(/\/$/, '').split('/')
+                var profileUrl = segments[segments.length - 1];
+                node = node.querySelector('div.avatarHolder ~ div');
+                if (!cdData[profileUrl]) {continue}
                 var cdDiv = document.createElement('div');
                 cdDiv.className = "scfn-cd"
                 cdDiv.style = "font-size: 14px; color: darkgray";
-                cdDiv.innerHTML = _this.secondsDisplay(cdData[nickname].cooldown - currentTime);
+                cdDiv.innerHTML = _this.secondsDisplay(cdData[profileUrl].cooldown - currentTime);
                 node.appendChild(cdDiv);
                 if (_this.recentOn) {
-                    var games = await _this.getRecentlyPlayedGames(cdData[nickname].steamid);
+                    var games = await _this.getRecentlyPlayedGames(cdData[profileUrl].steamid);
                     if (!!games) {
                         let recentDiv = document.createElement('div');
                         recentDiv.style = "font-size: 14px; line-height: 24px; color: gray;"
