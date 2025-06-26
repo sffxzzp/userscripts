@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.62
+// @version      0.63
 // @description  show recent purchase of your steam cyber family (will exclude what you already have)
 // @author       sffxzzp
 // @match        *://*/*
@@ -9,6 +9,7 @@
 // @icon         https://store.steampowered.com/favicon.ico
 // @grant        GM_setValue
 // @grant        GM_getValue
+// @grant        GM_deleteValue
 // @grant        GM_xmlhttpRequest
 // @grant        GM_notification
 // @grant        GM_registerMenuCommand
@@ -47,6 +48,7 @@
         scfn.prototype.wishlistOn = GM_getValue('scfn_wishlist', true);
         scfn.prototype.recentOn = GM_getValue('scfn_recent', true);
         scfn.prototype.menu = [];
+        scfn.prototype.menushow = false;
         scfn.prototype.getAccessToken = async function () {
             this.access_token = (await util.xhr({url: 'https://store.steampowered.com/pointssummary/ajaxgetasyncconfig', type: 'json'})).body.data.webapi_token;
         };
@@ -142,7 +144,9 @@
                 var family_members = await this.getMembers(familyData.family_group.members);
                 cdData = {};
                 for (let i = 0; i < familyData.family_group.members.length; i++) {
-                    cdData[family_members[familyData.family_group.members[i].steamid].profile_url] = {
+                    let profileUrl = family_members[familyData.family_group.members[i].steamid].profile_url;
+                    profileUrl = profileUrl == "" ? familyData.family_group.members[i].steamid : profileUrl;
+                    cdData[profileUrl] = {
                         steamid: familyData.family_group.members[i].steamid,
                         cooldown: familyData.family_group.members[i].cooldown_seconds_remaining == 0 ? 0 : familyData.family_group.members[i].cooldown_seconds_remaining + currentTime,
                     };
@@ -285,26 +289,50 @@
         scfn.prototype.registerMenu = function () {
             var _this = this;
             _this.menu = [];
-            var notifyMenuId = GM_registerMenuCommand(_this.notifyOn ? '禁用通知' : '启用通知', function () {
-                _this.notifyOn = !_this.notifyOn;
-                GM_setValue('scfn_notify', _this.notifyOn);
-                _this.clearMenu();
-            });
-            _this.menu.push(notifyMenuId);
-            var wishlistMenuId = GM_registerMenuCommand(_this.wishlistOn ? '禁用愿望单高亮' : '启用愿望单高亮', function () {
-                _this.wishlistOn = !_this.wishlistOn;
-                GM_setValue('scfn_wishlist', _this.wishlistOn);
-                _this.clearMenu();
-                location.reload();
-            });
-            _this.menu.push(wishlistMenuId);
-            var recentMenuId = GM_registerMenuCommand(_this.recentOn ? '禁用最近游玩' : '启用最近游玩', function () {
-                _this.recentOn = !_this.recentOn;
-                GM_setValue('scfn_recent', _this.recentOn);
-                _this.clearMenu();
-                location.reload();
-            });
-            _this.menu.push(recentMenuId);
+            if (_this.menushow) {
+                var hideMenuId = GM_registerMenuCommand('隐藏菜单', function () {
+                    _this.menushow = !_this.menushow;
+                    _this.clearMenu();
+                });
+                _this.menu.push(hideMenuId);
+                var notifyMenuId = GM_registerMenuCommand(_this.notifyOn ? '禁用通知' : '启用通知', function () {
+                    _this.notifyOn = !_this.notifyOn;
+                    GM_setValue('scfn_notify', _this.notifyOn);
+                    _this.clearMenu();
+                });
+                _this.menu.push(notifyMenuId);
+                var wishlistMenuId = GM_registerMenuCommand(_this.wishlistOn ? '禁用愿望单高亮' : '启用愿望单高亮', function () {
+                    _this.wishlistOn = !_this.wishlistOn;
+                    GM_setValue('scfn_wishlist', _this.wishlistOn);
+                    _this.clearMenu();
+                    location.reload();
+                });
+                _this.menu.push(wishlistMenuId);
+                var recentMenuId = GM_registerMenuCommand(_this.recentOn ? '禁用最近游玩' : '启用最近游玩', function () {
+                    _this.recentOn = !_this.recentOn;
+                    GM_setValue('scfn_recent', _this.recentOn);
+                    _this.clearMenu();
+                    location.reload();
+                });
+                _this.menu.push(recentMenuId);
+                var clearCacheId = GM_registerMenuCommand('清除所有缓存', function () {
+                    if (window.confirm('确定要清除所有缓存吗？不会修改禁用设置，但可能会重新通知。')) {
+                        GM_deleteValue('cdtime');
+                        GM_deleteValue('cddata');
+                        GM_deleteValue('time');
+                        GM_deleteValue('list');
+                        GM_deleteValue('lastrun');
+                        location.reload();
+                    }
+                });
+                _this.menu.push(clearCacheId);
+            } else {
+                var showMenuId = GM_registerMenuCommand('显示菜单', function () {
+                    _this.menushow = !_this.menushow;
+                    _this.clearMenu();
+                });
+                _this.menu.push(showMenuId);
+            }
         };
         scfn.prototype.run = async function () {
             this.registerMenu();
