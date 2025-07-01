@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili BV 2 AV
 // @namespace    https://github.com/sffxzzp
-// @version      0.30
+// @version      0.31
 // @description  redirect bilibili's BVid to aid
 // @author       sffxzzp
 // @include      /https:\/\/www.bilibili.com\/video\/[Bb][Vv].*/
@@ -47,6 +47,45 @@
         }
         return b2a_old;
     })();
+    // from: https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/docs/misc/bvid_desc.md
+    var b2a_new = (function () {
+        var b2a_new = function () {
+            this.table = 'FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf';
+            this.xor = 23442827791579n;
+            this.mask = 2251799813685247n;
+            this.max = 1n << 51n;
+            this.base = 58n;
+        }
+        b2a_new.prototype.enc = function (x) {
+            let r = ['B', 'V', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0'];
+            let i = r.length - 1;
+            let t = (this.max | unsafeWindow.BigInt(x)) ^ this.xor;
+            while (t > 0) {
+                r[i] = this.table[Number(t % unsafeWindow.BigInt(this.base))];
+                t /= this.base;
+                i -= 1;
+            }
+            [r[3], r[9]] = [r[9], r[3]];
+            [r[4], r[7]] = [r[7], r[4]];
+            return r.join('');
+        }
+        b2a_new.prototype.dec = function (x) {
+            x = x.split('');
+            [x[3], x[9]] = [x[9], x[3]];
+            [x[4], x[7]] = [x[7], x[4]];
+            x.splice(0, 3);
+            return Number((x.reduce((p, c) => p * this.base + unsafeWindow.BigInt(this.table.indexOf(c)), 0n) & this.mask) ^ this.xor);
+        }
+        b2a_new.prototype.run = function () {
+            let bv = /video\/([Bb][Vv].*)/.exec(location.href)[1].split('/')[0];
+            let av = this.dec(bv);
+            let query = location.href.split('/?')[1];
+            query = query == undefined ? '' : '?'+query;
+            if (av) {history.replaceState(null, document.title, 'https://www.bilibili.com/video/av'+av+'/'+query);}
+        }
+        return b2a_new;
+    })();
+    // use js runtime data
     var b2a = (function () {
         var b2a = function () {};
         b2a.prototype.run = function () {
