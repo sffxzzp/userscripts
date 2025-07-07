@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         Bili Live Code Fetcher
 // @namespace    https://github.com/sffxzzp
-// @version      0.17
+// @version      0.18
 // @description  WTF is that (100)x 5000 fans limit
 // @author       sffxzzp
-// @match        *://link.bilibili.com/p/center/index*
+// @match        *://link.bilibili.com/*
 // @grant        GM_addStyle
 // @icon         https://www.bilibili.com/favicon.ico
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/bilibili/bililivecodefetcher.user.js
