@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name            Enhanced Steam Community
-// @author          Deparsoul & onlyisu
+// @name            Enhanced Steam Community Fork
+// @author          Deparsoul & onlyisu & sffxzzp & DevSplash
 // @namespace       https://greasyfork.org/users/726
 // @description     Add some extra functions to Steam Community
-// @copyright       2015+,  Deparsoul & onlyisu
-// @version         2023.05.24
+// @copyright       2015+,  Deparsoul & onlyisu & sffxzzp & DevSplash
+// @version         2025.07.11
 // @icon            https://store.steampowered.com/favicon.ico
 // @license         GPL version 3 or any later version
 // @match           http*://steamcommunity.com/*
@@ -13,6 +13,8 @@
 // @grant           GM_xmlhttpRequest
 // @grant           unsafeWindow
 // @connect         www.steamcardexchange.net
+// @updateURL       https://github.com/sffxzzp/userscripts/raw/refs/heads/master/enhancedsteamcommunity-fork/esc.user.js
+// @downloadURL     https://github.com/sffxzzp/userscripts/raw/refs/heads/master/enhancedsteamcommunity-fork/esc.user.js
 // ==/UserScript==
 
 /*
@@ -693,7 +695,7 @@ function escEnhanceBadges() {
             }
 
             // 通过市场获取所有卡片列表
-            $J.getJSON('//steamcommunity.com/market/search/render/?start=0&count=20&category_753_cardborder[]=tag_cardborder_'+foil+'&appid=753&category_753_Game[]=tag_app_'+appid, function(data){
+            $J.getJSON('//steamcommunity.com/market/search/render/?start=0&count=20&category_753_cardborder[]=tag_cardborder_'+foil+'&appid=753&category_753_item_class%5B%5D=marketable&category_753_Game[]=tag_app_'+appid, function(data){
                 var list = $J('<div>'+data.results_html+'</div>');
                 list.find('.market_listing_row_link').each(function(){
                     var l = $J(this);
