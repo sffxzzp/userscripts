@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.62
+// @version      0.70
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://fastly.jsdelivr.net/npm/hls.js@1.1.3/dist/hls.min.js
@@ -44,6 +44,145 @@
     }
     initMenu();
 
+    var tsNumber = function (str) {
+        let matches = str.match(/(\d+)\.ts/)
+        if (matches) {
+            return parseInt(matches[1])
+        }
+        return null
+    }
+
+    var m3u8HandlerIndex = function (content) {
+        let lines = content.split('\n');
+        let processed_lines = [];
+        let index = 0;
+        let name_len;
+        let pre_name;
+        let next_name;
+
+        for (let line of lines) {
+            if (line.endsWith('.ts')) {
+                if (!next_name) {
+                    pre_name = line.split('.ts')[0];
+                    // 文件名长度为 32 的话一般是 hash 名称，处理会导致只输出一个片段
+                    if (pre_name.length == 32) {
+                        return content;
+                    }
+                    name_len = pre_name.length;
+                    index++;
+                    const str_index = String(index);
+                    next_name = `${pre_name.substring(0, name_len - str_index.length)}${str_index}.ts`;
+                } else {
+                    if (next_name != line) {
+                        processed_lines.pop();
+                        if (processed_lines[processed_lines.length - 1] == '#EXT-X-DISCONTINUITY') {
+                            processed_lines.pop();
+                        }
+                        continue;
+                    } else {
+                        index++;
+                        const str_index = String(index);
+                        // plist 系列命名，本身名字就是变长的，需要另行处理
+                        if ((pre_name && pre_name.includes('plist')) || pre_name && pre_name.includes('output')) {
+                            next_name = `${pre_name.substring(0, name_len - 1)}${str_index}.ts`;
+                        } else {
+                            next_name = `${pre_name.substring(0, name_len - str_index.length)}${str_index}.ts`;
+                        }
+                    }
+                }
+            }
+            processed_lines.push(line);
+        }
+        return processed_lines.join('\n');
+    }
+
+    var m3u8Handler = function (content) {
+        // 处理特征：序号问题
+        content = m3u8HandlerIndex(content);
+        let lines = content.split('\n');
+        let nameLen = 0;
+        // 处理过的结果
+        let result = [];
+        for (let i = 0; i < lines.length; i++) {
+            // 处理 ts
+            if (lines[i].includes('.ts')) {
+                // 尚未初始化名称长度
+                if (nameLen == 0) {
+                    nameLen = lines[i].length;
+                }
+            }
+            // 处理特征：#EXT-X-DISCONTINUITY 作为起始点
+            if (lines[i].startsWith('#EXT-X-DISCONTINUITY')) {
+                // 处理特征：ts 文件名长度大于 nameLen，且 nameLen 已初始化并且大于 13（排除 plist0.ts 以及 output0.ts 情形）
+                if (lines[i + 2] && lines[i + 2].includes('.ts') && lines[i + 2].length > nameLen && nameLen != 0 && nameLen > 13) {
+                    // i + 1 是片段长度，i + 2 才是文件名
+                    let j = i + 2;
+                    // 判断这一行是否是 ts 文件名，不是则为 Discontinuity 结束或者文件结束
+                    // 以及文件名长度是否大于 nameLen，即文件名长度异常
+                    while (lines[j] && lines[j].includes('.ts') && lines[j].length > nameLen) {
+                        // 查找下一个文件名
+                        j += 2;
+                    }
+                    // 使 index 为文件名异常的最后一个片段，将被跳过
+                    i = j;
+                }
+                // 处理特征：6.666667 开头片段
+                // 处理特征：6.133333 开头片段
+                else if ((lines[i + 1] && lines[i + 1].indexOf('6.666667') > -1) || (lines[i + 1] && lines[i + 1].indexOf('6.133333') > -1)) {
+                    // i + 1 是片段长度，若碰到 #EXT-X-DISCONTINUITY 则结束
+                    let j = i + 1;
+                    while (lines[j] && lines[j].startsWith('#EXTINF')) {
+                        j += 2;
+                    }
+                    i = j;
+                }
+                // 否则正常输出
+                else {
+                    result.push(lines[i]);
+                }
+            }
+            // 否则正常输出
+            else {
+                result.push(lines[i]);
+            }
+        }
+        return result.join('\n');
+    }
+
+    var m3u8Filter = function (content) {
+        try {
+            return m3u8Handler(content);
+        } catch (e) {
+            return content;
+        }
+    }
+
+    // 参考：https://github.com/senshinya/MoonTV/blob/78fe2485e3631886fada728ab95ed58e06432ece/src/app/play/page.tsx#L415
+    class CustomHlsJsLoader extends Hls.DefaultConfig.loader {
+        constructor(config) {
+            super(config);
+            const load = this.load.bind(this);
+            this.load = function (context, config, callbacks) {
+                // 拦截manifest和level请求
+                if (context.type === 'manifest' || context.type === 'level') {
+                    const onSuccess = callbacks.onSuccess;
+                    callbacks.onSuccess = function (response, stats, context, networkDetails) {
+                        // 如果是m3u8文件，处理内容以移除广告分段
+                        if (response.data && typeof response.data === 'string') {
+                            console.log(response.data);
+                            // 过滤掉广告段 - 实现更精确的广告过滤逻辑
+                            response.data = m3u8Filter(response.data);
+                            console.log(response.data);
+                        }
+                        return onSuccess(response, stats, context, networkDetails);
+                    };
+                }
+                // 执行原始load方法
+                load(context, config, callbacks);
+            };
+        }
+    }
+
     // the rest of the code should run when document loaded instead of document-start
     document.addEventListener('DOMContentLoaded', init);
     function init() {
@@ -52,13 +191,15 @@
                 if (art.hls) {
                     art.hls.destroy();
                 }
-                const hls = new Hls();
                 let NoAD = GM_getValue('ikan_noad', false);
-                if (NoAD) {
-                    hls.loadSource("https://m3u8.kanojo.eu.org/?url="+url);
-                } else {
-                    hls.loadSource(url);
-                }
+                const hls = new Hls({
+                    lowLatencyMode: true,
+                    maxBufferLength: 30,
+                    backBufferLength: 30,
+                    maxBufferSize: 60 * 1000 * 1000,
+                    loader: NoAD ? CustomHlsJsLoader : Hls.DefaultConfig.loader,
+                });
+                hls.loadSource(url);
                 hls.attachMedia(video);
                 art.hls = hls;
                 art.on('destroy', function () {
