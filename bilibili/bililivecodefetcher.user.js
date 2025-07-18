@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bili Live Code Fetcher
 // @namespace    https://github.com/sffxzzp
-// @version      0.18
+// @version      0.20
 // @description  WTF is that (100)x 5000 fans limit
 // @author       sffxzzp
 // @match        *://link.bilibili.com/*
@@ -69,6 +69,9 @@
             data.append('csrf', this.getCookie('bili_jct'));
             data.append('visit_id', '');
             let res = await fetch('https://api.live.bilibili.com/room/v1/Room/startLive', {method: 'POST', body: data, credentials: 'include'}).then(res => res.json());
+            if (res.code != 0 && res.data.qr != "") {
+                this.setInfo(`${res.message}<br>${res.data.qr}`);
+            }
             // 现在界面自带身份码了
             // let idata = new FormData();
             // idata.append('csrf', this.getCookie('bili_jct'));
