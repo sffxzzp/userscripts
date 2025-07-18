@@ -4,7 +4,7 @@
 // @namespace       https://greasyfork.org/users/726
 // @description     Add some extra functions to Steam Community
 // @copyright       2015+,  Deparsoul & onlyisu & sffxzzp & DevSplash
-// @version         2025.07.11
+// @version         2025.07.17
 // @icon            https://store.steampowered.com/favicon.ico
 // @license         GPL version 3 or any later version
 // @match           http*://steamcommunity.com/*
@@ -240,7 +240,8 @@ function escEnhanceTradeOffer() {
     }
 }
 
-function escChangeMarketSearchPageSize() {
+// 接口失效
+/* function escChangeMarketSearchPageSize() {
     if (!escGetLS('market_pagesize')) {
         escSetLS('market_pagesize', 20);
     }
@@ -258,11 +259,12 @@ function escChangeMarketSearchPageSize() {
         g_oSearchResults.GoToPage(0, true);
         $J('#searchResultsRows').stop().fadeTo(0, 1.0);
     }
-}
+} */
 
 function escEnhanceMarketSearch() {
     escShowInventoryAmount();
-    setTimeout(escChangeMarketSearchPageSize, 300);
+    // 接口不管改什么都只返回 10 个了，注释掉
+    // setTimeout(escChangeMarketSearchPageSize, 300);
 }
 
 // 打开库存时自动激活指定过滤条件
