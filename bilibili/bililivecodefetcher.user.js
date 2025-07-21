@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Bili Live Code Fetcher
 // @namespace    https://github.com/sffxzzp
-// @version      0.20
+// @version      0.22
 // @description  WTF is that (100)x 5000 fans limit
 // @author       sffxzzp
 // @match        *://link.bilibili.com/*
 // @grant        GM_addStyle
 // @icon         https://www.bilibili.com/favicon.ico
+// @require      https://fastly.jsdelivr.net/npm/qrcode/build/qrcode.min.js
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/bilibili/bililivecodefetcher.user.js
 // @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/bilibili/bililivecodefetcher.user.js
 // ==/UserScript==
@@ -70,7 +71,13 @@
             data.append('visit_id', '');
             let res = await fetch('https://api.live.bilibili.com/room/v1/Room/startLive', {method: 'POST', body: data, credentials: 'include'}).then(res => res.json());
             if (res.code != 0 && res.data.qr != "") {
-                this.setInfo(`${res.message}<br>${res.data.qr}`);
+                let qrImg;
+                QRCode.toDataURL(res.data.qr, function (error, url) {
+                    if (!error) {
+                        qrImg = url;
+                    }
+                });
+                this.setInfo(`${res.message}<br>${res.data.qr}<br><img src="${qrImg}" />`);
             }
             // 现在界面自带身份码了
             // let idata = new FormData();
