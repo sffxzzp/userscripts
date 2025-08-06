@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Steam Store Video Downloader
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
+// @version      0.02
 // @description  add download button in store page to get videos.
 // @author       sffxzzp
 // @match        *://store.steampowered.com/app/*
 // @icon         https://store.steampowered.com/favicon.ico
-// @grant        GM_openInTab
+// @grant        none
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/steam/storevideodownloader.user.js
 // @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/steam/storevideodownloader.user.js
 // ==/UserScript==
@@ -22,7 +22,7 @@
         let assetId = parseInt(node.id.split('_')[2]);
         if (movies[assetId]) {
             node.ondblclick = function () {
-                GM_openInTab(movies[assetId], false);
+                window.open(movies[assetId]);
             }
         }
     });
