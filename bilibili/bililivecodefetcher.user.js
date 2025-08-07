@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bili Live Code Fetcher
 // @namespace    https://github.com/sffxzzp
-// @version      0.22
+// @version      0.25
 // @description  WTF is that (100)x 5000 fans limit
 // @author       sffxzzp
 // @match        *://link.bilibili.com/*
@@ -63,6 +63,11 @@
         };
         blcf.prototype.startLive = async function (roomid) {
             let data = new FormData();
+            // 尝试修复每24小时人脸验证
+            // https://github.com/lanyangyin/OBSscripts-bilibili-live/issues/15
+            data.append('appKey', 'aae92bc66f3edfab');
+            data.append('version', '1.0.0');
+            data.append('build', '1234');
             data.append('room_id', roomid);
             data.append('area_v2', this.getAreaSelected());
             data.append('platform', this.platform);
@@ -78,6 +83,7 @@
                     }
                 });
                 this.setInfo(`${res.message}<br>${res.data.qr}<br><img src="${qrImg}" />`);
+                return false;
             }
             // 现在界面自带身份码了
             // let idata = new FormData();
@@ -87,6 +93,7 @@
             // let ires = await fetch('https://api.live.bilibili.com/xlive/open-platform/v1/common/operationOnBroadcastCode', {method: 'POST', body: idata, credentials: 'include'}).then(res => res.json());
             // this.setInfo(`开播成功！<br>直播地址：${res.data.protocols[0].addr}<br>推流码：${res.data.protocols[0].code}<br>身份码：${ires.data.code}`);
             this.setInfo(`开播成功！<br>直播地址：${res.data.protocols[0].addr}<br>推流码：${res.data.protocols[0].code}`);
+            return true;
         };
         blcf.prototype.stopLive = async function (roomid) {
             let data = new FormData();
@@ -126,10 +133,11 @@
             if (isLive == 1) {
                 startLive.disabled = true;
             }
-            startLive.onclick = function () {
-                _this.startLive(roomid);
-                startLive.disabled = true;
-                stopLive.disabled = false;
+            startLive.onclick = async function () {
+                if (await _this.startLive(roomid)) {
+                    startLive.disabled = true;
+                    stopLive.disabled = false;
+                }
             };
             container.appendChild(startLive);
 
