@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Inventory Temp Fix
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
+// @version      0.02
 // @description  nothing.
 // @author       sffxzzp
 // @match        *://steamcommunity.com/*/inventory
@@ -44,9 +44,8 @@
         this.m_$Inventory.addClass('loading');
         var _this = this;
 
-        if ( !count ) {
-            count = this.m_bPerformedInitialLoad ? 1000 : 75;
-        }
+        // force it to be 1000 max
+        count = this.m_bPerformedInitialLoad ? 1000 : 75;
 
         var params = {
             'l': 'schinese',
