@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.63
+// @version      0.70
 // @description  show recent purchase of your steam cyber family (will exclude what you already have)
 // @author       sffxzzp
 // @match        *://*/*
 // @exclude      *://*.humblebundle.com/*
 // @icon         https://store.steampowered.com/favicon.ico
+// @grant        GM_addStyle
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_deleteValue
@@ -64,6 +65,14 @@
         scfn.prototype.getRecentlyPlayedGames = async function (steamid) {
             return (await util.xhr({url: `https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?access_token=${this.access_token}&steamid=${steamid}&format=json`, type: 'json'})).body.response.games;
         };
+        scfn.prototype.getFriendsData = async function (steamid) {
+            let fData = (await util.xhr({url: `https://api.steampowered.com/ISteamUser/GetFriendList/v1/?key=&steamid=76561198137595648&access_token=${this.access_token}`, type: 'json'})).body.friendslist.friends;
+            let outData = {};
+            fData.forEach(function (friend) {
+                outData[friend.steamid] = friend.friend_since;
+            });
+            return outData;
+        };
         scfn.prototype.getMembers = async function (members) {
             var family_members = {};
             var reqStr = "";
@@ -104,6 +113,34 @@
             });
             tmpList.sort(function (a, b) { return b.time - a.time });
             return tmpList;
+        };
+        scfn.prototype.getFriends = async function () {
+            await this.getAccessToken();
+            var steamid = unsafeWindow.g_steamID;
+            if (steamid) {
+                var friendsData = await this.getFriendsData(steamid);
+                document.querySelectorAll('div#friends_list > div#search_results > div.friend_block_v2.persona').forEach(function (node) {
+                    let friendID = node.dataset.steamid;
+                    let targetNode = node.querySelector('span.friend_small_text');
+                    if (targetNode.childElementCount > 0) {
+                        targetNode.appendChild(document.createElement('br'));
+                    }
+                    let friendTime = new Date(friendsData[friendID] * 1000);
+                    let friendTimeSpan = document.createElement('span');
+                    friendTimeSpan.innerHTML = `于 ${friendTime.getFullYear()} 年 ${friendTime.getMonth()+1} 月 ${friendTime.getDate()} 日 成为好友`;
+                    targetNode.appendChild(friendTimeSpan);
+                    if (targetNode.childElementCount == 1) {
+                        targetNode.appendChild(document.createElement('br'));
+                    }
+                });
+            }
+        };
+        scfn.prototype.friendSince = function () {
+            var _this = this;
+            setTimeout(function () {
+                GM_addStyle('.friend_block_v2.in-game .friend_block_content, #friends_broadcast_moderator .friend_broadcast_moderator_v2 .friend_broadcast_moderator_content, #friends_blocked .friend_block_v2 .friend_block_content {margin-top: 0} .friend_block_v2 .friend_block_content {margin: 0;} .friend_block_v2 .friend_game_link {line-height: inherit;} .player_nickname_hint {line-height: 0}');
+                _this.getFriends();
+            }, 5000);
         };
         scfn.prototype.secondsDisplay = function (seconds) {
             if (seconds <= 0) {
@@ -338,6 +375,9 @@
             this.registerMenu();
             if (location.href.indexOf('https://store.steampowered.com/account/familymanagement')>-1) {
                 this.coolDown();
+            }
+            else if (location.href.indexOf('https://steamcommunity.com/')>-1 && location.href.indexOf('friends')>-1) {
+                this.friendSince();
             }
             else if (location.href.indexOf('https://store.steampowered.com/wishlist/')>-1) {
                 if (this.wishlistOn) {
