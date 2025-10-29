@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Humble Games Collection Tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.02
+// @version      0.03
 // @description  A script that displays games info in Humble Games Collection
 // @author       sffxzzp
 // @match        *://www.humblebundle.com/membership/collection*
@@ -84,7 +84,7 @@
             var outputHTML = "<h1>Humble Games Collection List</h1>";
             for (let i of res) {
                 outputHTML += `<div style="height: 200px; display: inline-block; width: 33.3333%; vertical-align: top;">`;
-                outputHTML += `<div style="font-size: 20px; font-weight: bold;">${i['human-name']}</div>`;
+                outputHTML += `<div style="font-size: 20px; font-weight: bold;"><a target="_blank" href="https://barter.vg/search?q=${encodeURIComponent(i['human-name'])}">${i['human-name']}</a></div>`;
                 outputHTML += ``;
                 for (let platform in i.downloads) {
                     outputHTML += `<div style="margin-top: 5px;"><span style="text-transform: capitalize;">${platform}: </span>`;
