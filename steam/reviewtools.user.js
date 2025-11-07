@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Review Edit-tools
 // @namespace    https://github.com/sffxzzp
-// @version      0.02
+// @version      0.03
 // @description  Add edit tools to steam review.
 // @author       sffxzzp
 // @match        *://store.steampowered.com/app/*
@@ -12,6 +12,7 @@
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/steam/reviewtools.user.js
+// @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/steam/reviewtools.user.js
 // ==/UserScript==
 
 (function() {
@@ -91,7 +92,7 @@
             }
         };
         sre.prototype.addStyles = function () {
-            GM_addStyle('#preview_body .bb_ul > li, #preview_body ol {list-style-position: inside}');
+            GM_addStyle('#preview_body .bb_ul > li, #preview_body ol {list-style-position: inside} .widestore #review_create .content, .widestore .review_controls, .widestore .review_controls_subctn { display: block; } .widestore #review_create .input_box { width: 100% !important; }');
         };
         sre.prototype.wrapURL = function (inputBox, start, end) {
             this.wrapSelection(inputBox, start, end);
@@ -116,13 +117,13 @@
                 target = document.querySelector('#ReviewEdit');
                 inputBox = target.querySelector('#ReviewEditTextArea');
                 targetCtl = target.querySelector('.review_edit_received_compensation');
-                previewBox = util.createElement({node: 'div', content: {id: 'preview_body', class: 'body_text', style: 'padding: 10px; background-color: #222b35;'}});
+                previewBox = util.createElement({node: 'div', content: {id: 'preview_body', class: 'body_text', style: 'padding: 10px; background-color: #222b35; width: 100%;'}});
             }
             else {
                 target = document.querySelector('#review_container .content');
                 inputBox = target.querySelector('#game_recommendation');
                 targetCtl = target.querySelector('.controls');
-                previewBox = util.createElement({node: 'div', content: {id: 'preview_body', class: 'body_text', style: 'padding: 10px; background-color: #222b35; margin-right: 7px;'}});
+                previewBox = util.createElement({node: 'div', content: {id: 'preview_body', class: 'body_text', style: 'padding: 10px; background-color: #222b35; width: 100%; margin-right: 7px;'}});
             }
             target.insertBefore(previewBox, targetCtl);
 
