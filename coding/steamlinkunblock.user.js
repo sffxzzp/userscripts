@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Link Unblock
 // @namespace    https://coding.net/u/sffxzzp
-// @version      0.04
+// @version      0.05
 // @description  Display all blocked links in Steam review.
 // @author       sffxzzp
 // @icon         https://store.steampowered.com/favicon.ico
@@ -9,6 +9,7 @@
 // @match        *://store.steampowered.com/app/*
 // @match        *://steamcommunity.com/*/recommended/*
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/coding/steamlinkunblock.user.js
+// @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/coding/steamlinkunblock.user.js
 // ==/UserScript==
 
 (function() {
@@ -31,10 +32,10 @@
             observer.observe(target, { childList: true, subtree: true });
         }
     }
-    if (location.href.indexOf('reviews')) {
+    if (location.href.indexOf('reviews') >= 0) {
         observe('AppHubCards');
     }
-    else if (location.href.indexOf('store.steampowered.com')) {
+    else if (location.href.indexOf('store.steampowered.com') >= 0) {
         observe('Reviews_summary');
     }
     else {
