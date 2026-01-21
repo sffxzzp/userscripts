@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         Bili Live Code Fetcher
 // @namespace    https://github.com/sffxzzp
-// @version      0.25
+// @version      0.26
 // @description  WTF is that (100)x 5000 fans limit
 // @author       sffxzzp
 // @match        *://link.bilibili.com/*
 // @grant        GM_addStyle
 // @icon         https://www.bilibili.com/favicon.ico
 // @require      https://fastly.jsdelivr.net/npm/qrcode/build/qrcode.min.js
+// @require      https://fastly.jsdelivr.net/npm/js-md5/build/md5.min.js
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/bilibili/bililivecodefetcher.user.js
 // @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/bilibili/bililivecodefetcher.user.js
 // ==/UserScript==
@@ -38,6 +39,8 @@
         // PC（第三方）, web 在线直播，PC（猜测是直播姬），安卓直播姬
         // 暂且还不知道直播姬的是什么
         blcf.prototype.platform = 'pc_link';
+        blcf.prototype.version = '7.43.1.10171';
+        blcf.prototype.build = 10171;
         blcf.prototype.getCookie = function (name) {
             const value = `; ${document.cookie}`;
             const parts = value.split(`; ${name}=`);
@@ -55,6 +58,20 @@
             let data = await fetch(`https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo?room_id=${roomid}`).then(res => res.json());
             return data.data.live_status;
         };
+        blcf.prototype.getLivehimeVersion = async function () {
+            let data = await fetch('https://api.live.bilibili.com/xlive/app-blink/v1/liveVersionInfo/getHomePageLiveVersion?'+ this.signData({system_version: 2}), {method: 'GET', credentials: 'include'}).then(res => res.json());
+            this.version = data.data.curr_version;
+            this.build = data.data.build;
+        };
+        blcf.prototype.signData = function (data) {
+            data.access_key = '';
+            data.ts = Math.floor(Date.now() / 1000).toString();
+            data.appkey = 'aae92bc66f3edfab';
+            data = new URLSearchParams(data);
+            data.sort();
+            data.set('sign', md5(data.toString() + "af125a0d5279fd576c1b4418a3e8276d").toString());
+            return data;
+        };
         blcf.prototype.getAreaSelected = function () {
             return parseInt(document.querySelector('#blcf_areaid').value)
         };
@@ -62,19 +79,21 @@
             document.querySelector('#blcf_info').innerHTML = html;
         };
         blcf.prototype.startLive = async function (roomid) {
-            let data = new FormData();
             // 尝试修复每24小时人脸验证
             // https://github.com/lanyangyin/OBSscripts-bilibili-live/issues/15
-            data.append('appKey', 'aae92bc66f3edfab');
-            data.append('version', '1.0.0');
-            data.append('build', '1234');
-            data.append('room_id', roomid);
-            data.append('area_v2', this.getAreaSelected());
-            data.append('platform', this.platform);
-            data.append('csrf_token', this.getCookie('bili_jct'));
-            data.append('csrf', this.getCookie('bili_jct'));
-            data.append('visit_id', '');
-            let res = await fetch('https://api.live.bilibili.com/room/v1/Room/startLive', {method: 'POST', body: data, credentials: 'include'}).then(res => res.json());
+            // https://github.com/chenxi-Eumenides/bilibili_live_tool/blob/master/cli/bili_lib.py
+            let data = {
+                'room_id': roomid,
+                'platform': this.platform,
+                'area_v2': this.getAreaSelected(),
+                'csrf': this.getCookie('bili_jct'),
+                'csrf_token': this.getCookie('bili_jct'),
+                'type': 2,
+                'build': this.build,
+                'version': this.version,
+            };
+
+            let res = await fetch('https://api.live.bilibili.com/room/v1/Room/startLive', {method: 'POST', body: this.signData(data), credentials: 'include'}).then(res => res.json());
             if (res.code != 0 && res.data.qr != "") {
                 let qrImg;
                 QRCode.toDataURL(res.data.qr, function (error, url) {
@@ -110,6 +129,8 @@
             const roomid = await _this.getRoomID();
             const arealist = await _this.getAreaList();
             const isLive = await _this.getLiveStatus(roomid);
+
+            _this.getLivehimeVersion();
 
             GM_addStyle(`.pclink-guide { display: none !important; } #blcf_areaid { height: 25px; padding: 2px 8px; line-height: 25px; border: 1px solid #aaa; border-radius: 4px; background-color: #fff; outline: none; } .blcf_button { margin-left: 10px; background-color: #23ade5; color: #fff; border-radius: 4px; padding: 3px 12px; } .blcf_button:disabled { color: #b4b4b4; background-color: #e9eaec; }`);
 
