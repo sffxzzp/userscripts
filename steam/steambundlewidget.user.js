@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Bundle Widget
 // @namespace    https://github.com/sffxzzp
-// @version      0.01
+// @version      0.02
 // @description  Add a steam like widget box to bundle links. modify @match to make it works for other sites.
 // @author       sffxzzp
 // @match        *://keylol.com/*
@@ -91,6 +91,8 @@
                 "en": {
                     bundleLabel: "Bundle",
                     view: "View",
+                    purchasePrefix: "Buy ",
+                    includesItems: "Includes {count} items:",
                     yourPrice: "Your price:",
                     loading: "Loading bundle info…",
                     errorTitle: "Error",
@@ -107,6 +109,8 @@
                 "zh-CN": {
                     bundleLabel: "捆绑包",
                     view: "查看",
+                    purchasePrefix: "购买 ",
+                    includesItems: "包含 {count} 件物品：",
                     yourPrice: "您的价格：",
                     loading: "加载中…",
                     errorTitle: "错误",
@@ -123,6 +127,8 @@
                 "zh-TW": {
                     bundleLabel: "組合包",
                     view: "查看",
+                    purchasePrefix: "購買 ",
+                    includesItems: "包含 {count} 項物品：",
                     yourPrice: "您的價格：",
                     loading: "載入中…",
                     errorTitle: "錯誤",
@@ -139,6 +145,8 @@
                 "ja": {
                     bundleLabel: "バンドル",
                     view: "表示",
+                    purchasePrefix: "購入 ",
+                    includesItems: "{count} 個のアイテムを含む：",
                     yourPrice: "あなたの価格：",
                     loading: "読み込み中…",
                     errorTitle: "エラー",
@@ -155,6 +163,8 @@
                 "ru": {
                     bundleLabel: "Набор",
                     view: "Открыть",
+                    purchasePrefix: "Купить ",
+                    includesItems: "В наборе {count} товаров:",
                     yourPrice: "Ваша цена:",
                     loading: "Загрузка…",
                     errorTitle: "Ошибка",
@@ -329,11 +339,12 @@
             var discountBase = this.getText(doc, ".bundle_base_discount");
             var discountCurrent = this.getText(doc, ".discount_pct");
 
-            var items = [];
-            var nodes = doc.querySelectorAll(".bundle_package_item .tab_item");
-            for (var i = 0; i < nodes.length; i++) {
-                if (items.length >= this.CONFIG.maxItems) break;
-                var node = nodes[i];
+            var itemNodes = doc.querySelectorAll(".bundle_package_item .tab_item");
+            var isMustPurchaseTogether = !!doc.querySelector(".bundle_package_item.must_purchase_as_set");
+            var bundleType = isMustPurchaseTogether ? "must_purchase_together" : "complete_the_set";
+            var allItems = [];
+            for (var i = 0; i < itemNodes.length; i++) {
+                var node = itemNodes[i];
                 var key = node.getAttribute("data-ds-itemkey") || "";
                 var parts = key.split("_");
                 if (parts.length < 2) continue;
@@ -348,15 +359,18 @@
                     if (src) { pic = src.split("?")[0].replace("184x69", "sm_120"); }
                 }
                 if (!pic) { pic = "https://media.steampowered.com/steam/" + type + "s/" + id + "/capsule_sm_120.jpg"; }
-                items.push({ id: id, type: type, name: itemName, pic: pic });
+                allItems.push({ id: id, type: type, name: itemName, pic: pic });
             }
 
             return {
                 url: "https://store.steampowered.com/bundle/" + bundleId + "/",
                 name: name,
+                type: bundleType,
+                itemCount: allItems.length,
+                itemNames: allItems.map(function (item) { return item.name; }),
                 price: { original: priceOriginal, current: priceCurrent },
                 discount: { base: discountBase, current: discountCurrent },
-                items: items
+                items: allItems.slice(0, this.CONFIG.maxItems)
             };
         };
 
@@ -403,7 +417,7 @@
             var host = util.createElement({
                 node: "div",
                 content: {
-                    style: "display:block;margin:6px 0;height:160px;width:100%;max-width:646px;",
+                    style: "display:block;margin:6px 0;height:160px;width:100%;max-width:646px;overflow:hidden;",
                     "data-sbw-widget": "true"
                 }
             });
@@ -412,12 +426,22 @@
 
             var style = util.createElement({
                 node: "style",
-                html: ".sbw-container{border-radius:0;background:#282e39 !important;background-color:#282e39 !important;padding:8px 10px;}" +
+                html: ".sbw-container{border-radius:0;background:#282e39 !important;background-color:#282e39 !important;padding:8px 10px;height:140px;box-sizing:border-box;display:flex;flex-direction:column;font-size:13px;color:#c6d4df;}" +
                 ".sbw-loading,.sbw-error{color:#c6d4df;font-size:14px;}" +
                 ".sbw-header a{color:#fff;}" +
+                ".sbw-title{margin-bottom:8px;flex:1 1 auto;min-height:0;overflow:hidden;}" +
+                ".sbw-title h1{margin:0;font-size:21px;line-height:23px;font-weight:normal;}" +
+                ".sbw-title a{color:#fff;text-decoration:none;}" +
+                ".sbw-subtitle{margin-top:4px;color:#c6d4df;font-size:13px;line-height:18px;}" +
+                ".sbw-subtitle .sbw-subtitle-label{color:#a4d007;}" +
                 ".bundle_label{margin-left:6px;}" +
-                ".bundle_contents_preview_item{display:inline-block;margin-right:4px;}" +
-                ".bundle_contents_preview_img{width:120px;height:auto;display:block;}"
+                ".bundle_contents_preview{margin-bottom:10px;flex:0 0 auto;}" +
+                ".bundle_contents_preview_position{display:flex;flex-wrap:wrap;gap:4px;}" +
+                ".bundle_contents_preview_item{display:inline-block;margin-right:0;}" +
+                ".bundle_contents_preview_img{width:120px;height:auto;display:block;}" +
+                ".sbw-container > .game_purchase_action{margin-top:auto !important;flex:0 0 auto;}" +
+                ".sbw-must-purchase .bundle_contents_preview{display:none;}" +
+                ".sbw-must-purchase .sbw-subtitle{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}"
             });
 
             var container = util.createElement({
@@ -460,14 +484,29 @@
 
         sbw.prototype.renderBundle = function (container, data) {
             this.clearContainer(container);
+            container.classList.toggle("sbw-must-purchase", data.type === "must_purchase_together");
 
+            var titleWrap = util.createElement({ node: "div", content: { class: "sbw-title" } });
             var title = util.createElement({ node: "h1" });
             var titleLink = util.createElement({ node: "a", content: { href: data.url, target: "_blank" } });
-            titleLink.textContent = data.name;
+            titleLink.textContent = this.strings.purchasePrefix + data.name;
             var label = util.createElement({ node: "span", content: { class: "bundle_label" } });
             label.textContent = this.strings.bundleLabel;
             this.append(title, titleLink);
-            this.append(title, label);
+            if (data.type !== "must_purchase_together") {
+                this.append(title, label);
+            }
+            this.append(titleWrap, title);
+
+            if (data.type === "must_purchase_together") {
+                var subtitle = util.createElement({ node: "div", content: { class: "sbw-subtitle" } });
+                var subtitleLabel = util.createElement({ node: "span", content: { class: "sbw-subtitle-label" } });
+                subtitleLabel.textContent = this.strings.includesItems.replace("{count}", String(data.itemCount));
+                subtitle.appendChild(subtitleLabel);
+                var subtitleText = document.createTextNode(data.itemNames.join("、"));
+                subtitle.appendChild(subtitleText);
+                this.append(titleWrap, subtitle);
+            }
 
             var contents = util.createElement({ node: "div", content: { class: "bundle_contents_preview" } });
             var contentsPos = util.createElement({ node: "div", content: { class: "bundle_contents_preview_position" } });
@@ -491,11 +530,13 @@
             var actionBg = util.createElement({ node: "div", content: { class: "game_purchase_action_bg" } });
 
             var discountBlock = util.createElement({ node: "div", content: { class: "discount_block game_purchase_discount" } });
-            if (!data.discount.current) { discountBlock.classList.add("no_discount"); }
+            if (!data.discount.current && !data.discount.base) { discountBlock.classList.add("no_discount"); }
 
-            var baseDiscount = util.createElement({ node: "div", content: { class: "bundle_base_discount" } });
-            baseDiscount.textContent = data.discount.base;
-            this.append(discountBlock, baseDiscount);
+            if (data.discount.base) {
+                var baseDiscount = util.createElement({ node: "div", content: { class: "bundle_base_discount" } });
+                baseDiscount.textContent = data.discount.base;
+                this.append(discountBlock, baseDiscount);
+            }
 
             if (data.discount.current) {
                 var discountPct = util.createElement({ node: "div", content: { class: "discount_pct" } });
@@ -512,6 +553,10 @@
                 current.textContent = data.price.current;
                 this.append(discountPrices, original);
                 this.append(discountPrices, current);
+            } else if (data.type === "must_purchase_together") {
+                var finalPrice = util.createElement({ node: "div", content: { class: "discount_final_price" } });
+                finalPrice.textContent = data.price.current;
+                this.append(discountPrices, finalPrice);
             } else {
                 var yourPrice = util.createElement({ node: "div", content: { class: "discount_final_price your_price" } });
                 var labelDiv = util.createElement({ node: "div", content: { class: "your_price_label" } });
@@ -525,19 +570,17 @@
 
             this.append(discountBlock, discountPrices);
             this.append(actionBg, discountBlock);
-            this.append(action, actionBg);
 
-            var actionBg2 = util.createElement({ node: "div", content: { class: "game_purchase_action_bg" } });
             var btnWrap = util.createElement({ node: "div", content: { class: "btn_addtocart btn_packageinfo" } });
             var btnLink = util.createElement({ node: "a", content: { class: "btn_green_steamui btn_medium", href: data.url, target: "_blank" } });
             var btnSpan = util.createElement({ node: "span" });
             btnSpan.textContent = this.strings.view;
             this.append(btnLink, btnSpan);
             this.append(btnWrap, btnLink);
-            this.append(actionBg2, btnWrap);
-            this.append(action, actionBg2);
+            this.append(actionBg, btnWrap);
+            this.append(action, actionBg);
 
-            this.append(container, title);
+            this.append(container, titleWrap);
             this.append(container, contents);
             this.append(container, action);
         };
