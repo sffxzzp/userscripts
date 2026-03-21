@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.70
+// @version      0.73
 // @description  show recent purchase of your steam cyber family (will exclude what you already have)
 // @author       sffxzzp
 // @match        *://*/*
@@ -175,7 +175,8 @@
             var cdTime = GM_getValue('cdtime') || 0;
             var cdTimeCond = (new Date()).getTime() - 86400000;
             var currentTime = parseInt((new Date()).getTime() / 1000);
-            if (cdData == null || cdTime < cdTimeCond) {
+            // if (cdData == null || cdTime < cdTimeCond) {
+            if (true) {
                 var familyData = await this.getFamilyData();
                 var family_groupid = familyData.family_groupid;
                 var family_members = await this.getMembers(familyData.family_group.members);
@@ -183,7 +184,10 @@
                 for (let i = 0; i < familyData.family_group.members.length; i++) {
                     let profileUrl = family_members[familyData.family_group.members[i].steamid].profile_url;
                     profileUrl = profileUrl == "" ? familyData.family_group.members[i].steamid : profileUrl;
-                    cdData[profileUrl] = {
+                    let name = family_members[familyData.family_group.members[i].steamid].name;
+                    cdData[name] = {
+                        name: name,
+                        profileUrl: profileUrl,
                         steamid: familyData.family_group.members[i].steamid,
                         cooldown: familyData.family_group.members[i].cooldown_seconds_remaining == 0 ? 0 : familyData.family_group.members[i].cooldown_seconds_remaining + currentTime,
                     };
@@ -191,19 +195,18 @@
                 GM_setValue("cddata", cdData);
                 GM_setValue("cdtime", (new Date()).getTime());
             }
-            for (let node of document.querySelectorAll('a:has(div.avatarHolder)')) {
+            for (let node of document.querySelectorAll('div[role=button]:has(div.avatarHolder)')) {
                 if (node.querySelector('div.scfn-cd')) {continue}
-                var segments = node.href.replace(/\/$/, '').split('/')
-                var profileUrl = segments[segments.length - 1];
+                var name = node.querySelector('div.Large ~ div > div:first-child > div').childNodes[0].nodeValue.trim();
                 node = node.querySelector('div.avatarHolder ~ div');
-                if (!cdData[profileUrl]) {continue}
+                if (!cdData[name]) {continue}
                 var cdDiv = document.createElement('div');
                 cdDiv.className = "scfn-cd"
                 cdDiv.style = "font-size: 14px; color: darkgray";
-                cdDiv.innerHTML = _this.secondsDisplay(cdData[profileUrl].cooldown - currentTime);
+                cdDiv.innerHTML = _this.secondsDisplay(cdData[name].cooldown - currentTime);
                 node.appendChild(cdDiv);
                 if (_this.recentOn) {
-                    var games = await _this.getRecentlyPlayedGames(cdData[profileUrl].steamid);
+                    var games = await _this.getRecentlyPlayedGames(cdData[name].steamid);
                     if (!!games) {
                         let recentDiv = document.createElement('div');
                         recentDiv.style = "font-size: 14px; line-height: 24px; color: gray;"
