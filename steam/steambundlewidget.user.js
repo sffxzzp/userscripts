@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Bundle Widget
 // @namespace    https://github.com/sffxzzp
-// @version      0.02
+// @version      0.05
 // @description  Add a steam like widget box to bundle links. modify @match to make it works for other sites.
 // @author       sffxzzp
 // @match        *://keylol.com/*
@@ -424,32 +424,11 @@
 
             var root = host.attachShadow({ mode: "open" });
 
-            var style = util.createElement({
-                node: "style",
-                html: ".sbw-container{border-radius:0;background:#282e39 !important;background-color:#282e39 !important;padding:8px 10px;height:140px;box-sizing:border-box;display:flex;flex-direction:column;font-size:13px;color:#c6d4df;}" +
-                ".sbw-loading,.sbw-error{color:#c6d4df;font-size:14px;}" +
-                ".sbw-header a{color:#fff;}" +
-                ".sbw-title{margin-bottom:8px;flex:1 1 auto;min-height:0;overflow:hidden;}" +
-                ".sbw-title h1{margin:0;font-size:21px;line-height:23px;font-weight:normal;}" +
-                ".sbw-title a{color:#fff;text-decoration:none;}" +
-                ".sbw-subtitle{margin-top:4px;color:#c6d4df;font-size:13px;line-height:18px;}" +
-                ".sbw-subtitle .sbw-subtitle-label{color:#a4d007;}" +
-                ".bundle_label{margin-left:6px;}" +
-                ".bundle_contents_preview{margin-bottom:10px;flex:0 0 auto;}" +
-                ".bundle_contents_preview_position{display:flex;flex-wrap:wrap;gap:4px;}" +
-                ".bundle_contents_preview_item{display:inline-block;margin-right:0;}" +
-                ".bundle_contents_preview_img{width:120px;height:auto;display:block;}" +
-                ".sbw-container > .game_purchase_action{margin-top:auto !important;flex:0 0 auto;}" +
-                ".sbw-must-purchase .bundle_contents_preview{display:none;}" +
-                ".sbw-must-purchase .sbw-subtitle{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}"
-            });
-
             var container = util.createElement({
                 node: "div",
-                content: { class: "sbw-container game_area_purchase_game_dropdown_subscription game_area_purchase_game" }
+                content: { class: "sbw-container game_area_purchase_game_dropdown_subscription game_area_purchase_game", style: "background: #282e39; height: 100px;" }
             });
 
-            this.append(root, style);
             this.append(root, container);
 
             return { host: host, container: container, root: root };
@@ -461,22 +440,14 @@
 
         sbw.prototype.renderLoading = function (container) {
             this.clearContainer(container);
-            var div = util.createElement({ node: "div", content: { class: "sbw-loading" } });
-            div.textContent = this.strings.loading;
+            var div = util.createElement({ node: "div", content: { class: "sbw-loading" }, html: this.strings.loading });
             this.append(container, div);
         };
 
         sbw.prototype.renderError = function (container) {
             this.clearContainer(container);
-            var header = util.createElement({ node: "div", content: { class: "header_container" } });
-            var h1 = util.createElement({ node: "h1", content: { class: "main_text" } });
-            var a = util.createElement({ node: "a" });
-            a.textContent = this.strings.errorTitle;
-            this.append(h1, a);
-            this.append(header, h1);
-
-            var desc = util.createElement({ node: "div", content: { class: "desc" } });
-            desc.textContent = this.strings.errorDesc;
+            var header = util.createElement({ node: "div", content: { class: "header_container" }, html: `<h1 class="main_text"><a>${this.strings.errorTitle}</a></h1>` });
+            var desc = util.createElement({ node: "div", content: { class: "desc" }, html: this.strings.errorDesc });
 
             this.append(container, header);
             this.append(container, desc);
@@ -487,50 +458,47 @@
             container.classList.toggle("sbw-must-purchase", data.type === "must_purchase_together");
 
             var titleWrap = util.createElement({ node: "div", content: { class: "sbw-title" } });
-            var title = util.createElement({ node: "h1" });
-            var titleLink = util.createElement({ node: "a", content: { href: data.url, target: "_blank" } });
-            titleLink.textContent = this.strings.purchasePrefix + data.name;
-            var label = util.createElement({ node: "span", content: { class: "bundle_label" } });
-            label.textContent = this.strings.bundleLabel;
-            this.append(title, titleLink);
+            var title = util.createElement({ node: "h1", html: `<a href=${data.url} target="_blank">${this.strings.purchasePrefix + data.name}</a>` });
+            var label = util.createElement({ node: "span", content: { class: "bundle_label" }, html: this.strings.bundleLabel });
             if (data.type !== "must_purchase_together") {
                 this.append(title, label);
             }
             this.append(titleWrap, title);
 
             if (data.type === "must_purchase_together") {
-                var subtitle = util.createElement({ node: "div", content: { class: "sbw-subtitle" } });
-                var subtitleLabel = util.createElement({ node: "span", content: { class: "sbw-subtitle-label" } });
-                subtitleLabel.textContent = this.strings.includesItems.replace("{count}", String(data.itemCount));
-                subtitle.appendChild(subtitleLabel);
-                var subtitleText = document.createTextNode(data.itemNames.join("、"));
-                subtitle.appendChild(subtitleText);
+                var subtitle = util.createElement({ node: "div", content: { class: "sbw-subtitle" }, html: `<p class="package_contents package_contents_collapsed" style="max-height: 60px; overflow: hidden;"><b>${this.strings.includesItems.replace("{count}", String(data.itemCount))}<b></p>` });
+                var gameItems = [];
+                for (let i of data.items) {
+                    gameItems.push(`<a data-panel="{&quot;focusable&quot;:false}" href="https://store.steampowered.com/app/${i.id}/">${i.name}</a>`);
+                }
+                subtitle.querySelector('p').insertAdjacentHTML('beforeend', gameItems.join(', '));;
                 this.append(titleWrap, subtitle);
             }
 
-            var contents = util.createElement({ node: "div", content: { class: "bundle_contents_preview" } });
-            var contentsPos = util.createElement({ node: "div", content: { class: "bundle_contents_preview_position" } });
-            for (var i = 0; i < data.items.length; i++) {
-                var item = data.items[i];
-                var itemLink = util.createElement({
-                    node: "a",
-                    content: {
-                        class: "bundle_contents_preview_item ds_collapse_flag app_impression_tracked",
-                        href: "https://store.steampowered.com/" + item.type + "/" + item.id + "/",
-                        target: "_blank"
-                    }
-                });
-                var img = util.createElement({ node: "img", content: { class: "bundle_contents_preview_img", src: item.pic, alt: item.name || "" } });
-                this.append(itemLink, img);
-                this.append(contentsPos, itemLink);
+            if (data.type != "must_purchase_together") {
+                var contents = util.createElement({ node: "div", content: { class: "bundle_contents_preview" } });
+                var contentsPos = util.createElement({ node: "div", content: { class: "bundle_contents_preview_position" } });
+                for (var i = 0; i < data.items.length; i++) {
+                    var item = data.items[i];
+                    var itemLink = util.createElement({
+                        node: "a",
+                        content: {
+                            class: "bundle_contents_preview_item ds_collapse_flag app_impression_tracked",
+                            href: "https://store.steampowered.com/" + item.type + "/" + item.id + "/",
+                            target: "_blank"
+                        },
+                        html: `<img class="bundle_contents_preview_img" src="${item.pic}" alt="${item.name || ""}" />`
+                    });
+                    this.append(contentsPos, itemLink);
+                }
+                this.append(contents, contentsPos);
             }
-            this.append(contents, contentsPos);
 
             var action = util.createElement({ node: "div", content: { class: "game_purchase_action" } });
             var actionBg = util.createElement({ node: "div", content: { class: "game_purchase_action_bg" } });
 
             var discountBlock = util.createElement({ node: "div", content: { class: "discount_block game_purchase_discount" } });
-            if (!data.discount.current && !data.discount.base) { discountBlock.classList.add("no_discount"); }
+            if (!data.discount.current) { discountBlock.classList.add("no_discount"); }
 
             if (data.discount.base) {
                 var baseDiscount = util.createElement({ node: "div", content: { class: "bundle_base_discount" } });
