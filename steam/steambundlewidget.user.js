@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Bundle Widget
 // @namespace    https://github.com/sffxzzp
-// @version      0.05
+// @version      0.10
 // @description  Add a steam like widget box to bundle links. modify @match to make it works for other sites.
 // @author       sffxzzp
 // @match        *://keylol.com/*
@@ -79,8 +79,8 @@
 
         sbw.prototype.init = function () {
             this.CONFIG = {
-                maxItems: 6,
                 observeMutations: true,
+                initialDelayMs: 1500,
                 loadSteamCSS: true,
                 uiLanguage: "auto",
                 steamLanguage: "auto",
@@ -205,6 +205,7 @@
 
             this.bundleCache = new Map();
             this.processedLinks = new WeakSet();
+            this.widgetHosts = new Map();
 
             var locales = this.resolveLocales();
             this.uiLang = locales.uiLang;
@@ -370,7 +371,7 @@
                 itemNames: allItems.map(function (item) { return item.name; }),
                 price: { original: priceOriginal, current: priceCurrent },
                 discount: { base: discountBase, current: discountCurrent },
-                items: allItems.slice(0, this.CONFIG.maxItems)
+                items: allItems
             };
         };
 
@@ -558,19 +559,61 @@
             return block || link;
         };
 
+        sbw.prototype.getLiveWidgetHost = function (bundleId) {
+            var hostData = this.widgetHosts.get(bundleId);
+            if (!hostData) return null;
+            if (!hostData.host || !hostData.host.isConnected) return null;
+            if (!hostData.root || hostData.host.shadowRoot !== hostData.root) return null;
+            if (!hostData.container || !hostData.container.isConnected) return null;
+            return hostData;
+        };
+
+        sbw.prototype.pruneDeadWidgetHosts = function () {
+            var deadBundleIds = [];
+            this.widgetHosts.forEach(function (hostData, bundleId) {
+                if (!hostData || !hostData.host || !hostData.host.isConnected || !hostData.root || hostData.host.shadowRoot !== hostData.root || !hostData.container || !hostData.container.isConnected) {
+                    deadBundleIds.push(bundleId);
+                }
+            });
+            for (var i = 0; i < deadBundleIds.length; i++) {
+                this.widgetHosts.delete(deadBundleIds[i]);
+            }
+        };
+
+        sbw.prototype.removeStaleWidgetShell = function (target) {
+            if (!target || !target.parentNode) return;
+            var node = target.nextElementSibling;
+            while (node && node.matches && node.matches("[data-sbw-widget='true']")) {
+                var next = node.nextElementSibling;
+                if (!node.shadowRoot) {
+                    node.parentNode.removeChild(node);
+                }
+                node = next;
+            }
+        };
+
         sbw.prototype.processLink = function (link) {
             if (!link || this.processedLinks.has(link)) return;
             if (link.closest("[data-sbw-widget='true']")) return;
             var bundleId = this.extractBundleId(link.href);
             if (!bundleId) return;
 
+            this.pruneDeadWidgetHosts();
+            var liveHost = this.getLiveWidgetHost(bundleId);
+            if (liveHost) {
+                this.processedLinks.add(link);
+                return;
+            }
+
             this.processedLinks.add(link);
+            var target = this.getInsertAfterTarget(link);
+            this.removeStaleWidgetShell(target);
 
             var hostData = this.createWidgetHost();
+            this.widgetHosts.set(bundleId, hostData);
             this.ensureSteamCss(hostData.root);
             this.renderLoading(hostData.container);
 
-            var target = this.getInsertAfterTarget(link);
             target.insertAdjacentElement("afterend", hostData.host);
 
             var self = this;
@@ -609,10 +652,13 @@
         sbw.prototype.run = async function () {
             this.init();
             this.setupMenus();
-            this.scan(document.body);
-            if (this.CONFIG.observeMutations && document.body) {
-                this.observe();
-            }
+            var self = this;
+            window.setTimeout(function () {
+                self.scan(document.body);
+                if (self.CONFIG.observeMutations && document.body) {
+                    self.observe();
+                }
+            }, this.CONFIG.initialDelayMs || 0);
         };
 
         return sbw;
