@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bili Live Code Fetcher
 // @namespace    https://github.com/sffxzzp
-// @version      0.26
+// @version      0.28
 // @description  WTF is that (100)x 5000 fans limit
 // @author       sffxzzp
 // @match        *://link.bilibili.com/*
@@ -41,6 +41,7 @@
         blcf.prototype.platform = 'pc_link';
         blcf.prototype.version = '7.43.1.10171';
         blcf.prototype.build = 10171;
+        blcf.prototype.uid = 0;
         blcf.prototype.getCookie = function (name) {
             const value = `; ${document.cookie}`;
             const parts = value.split(`; ${name}=`);
@@ -48,6 +49,7 @@
         };
         blcf.prototype.getRoomID = async function () {
             let room = await fetch('https://api.live.bilibili.com/xlive/app-blink/v1/room/GetInfo?platform=' + this.platform, {credentials: 'include'}).then(res => res.json());
+            this.uid = room.data.uid;
             return room.data.room_id;
         };
         blcf.prototype.getAreaList = async function () {
@@ -94,15 +96,28 @@
             };
 
             let res = await fetch('https://api.live.bilibili.com/room/v1/Room/startLive', {method: 'POST', body: this.signData(data), credentials: 'include'}).then(res => res.json());
-            if (res.code != 0 && res.data.qr != "") {
-                let qrImg;
-                QRCode.toDataURL(res.data.qr, function (error, url) {
-                    if (!error) {
-                        qrImg = url;
-                    }
-                });
-                this.setInfo(`${res.message}<br>${res.data.qr}<br><img src="${qrImg}" />`);
-                return false;
+            // https://github.com/Rsplwe/bili-live-hime/blob/main/src/view/live-stream-settings.tsx
+            let qrImg;
+            let qrurl = `https://www.bilibili.com/blackboard/live/face-auth-middle.html?source_event=400&mid=${this.uid}`;
+            switch (res.code) {
+                case 60024:
+                    QRCode.toDataURL(res.data.qr, function (error, url) {
+                        if (!error) {
+                            qrImg = url;
+                        }
+                    })
+                    this.setInfo(`${res.message}<br>${res.data.qr}<br><img src="${qrImg}" />`);
+                    break;
+                case 60043:
+                    QRCode.toDataURL(qrurl, function (error, url) {
+                        if (!error) {
+                            qrImg = url;
+                        }
+                    })
+                    this.setInfo(`${res.message}<br>${qrurl}<br><img src="${qrImg}" />`);
+                    break;
+                case 0:
+                    break;
             }
             // 现在界面自带身份码了
             // let idata = new FormData();
