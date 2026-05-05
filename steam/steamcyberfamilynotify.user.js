@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.73
+// @version      0.74
 // @description  show recent purchase of your steam cyber family (will exclude what you already have)
 // @author       sffxzzp
 // @match        *://*/*
@@ -284,7 +284,9 @@
         scfn.prototype.wishlist = function () {
             var _this = this;
             setTimeout(function () {
-                if (unsafeWindow.SSR.reactRoot._internalRoot) {
+                if (unsafeWindow.SSR &&
+                    unsafeWindow.SSR.reactRoot &&
+                    unsafeWindow.SSR.reactRoot._internalRoot) {
                     _this.initWishlist();
                 } else {
                     _this.wishlist();
