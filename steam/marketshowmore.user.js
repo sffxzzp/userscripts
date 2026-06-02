@@ -1,147 +1,121 @@
 // ==UserScript==
-// @name         Steam Market Show More
+// @name         Steam Market Show More (React Version)
 // @namespace    https://github.com/sffxzzp
-// @version      0.04
-// @description  Show more price listing in market page.
-// @author       sffxzzp
+// @version      1.0
+// @description  Show more price listings in the new React-based market page.
+// @author       sffxzzp & Gemini 2.5 pro
 // @match        *://steamcommunity.com/market/listings/*/*
 // @icon         https://store.steampowered.com/favicon.ico
 // @grant        unsafeWindow
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/steam/marketshowmore.user.js
 // @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/steam/marketshowmore.user.js
-// @run-at       document-body
+// @run-at       document-start
 // ==/UserScript==
 
 (function() {
+    'use strict';
+
     // 需要显示的行数范围 0-100
-    var num = 20;
+    const NUM_ROWS_TO_SHOW = 20;
+    const PATCH_INSTANCE_PROP_NAME = '_isPatchedByShowMoreScript';
 
-    unsafeWindow.Market_LoadOrderSpread = function (item_nameid) {
-        unsafeWindow.$J.ajax( {
-            url: 'https://steamcommunity.com/market/itemordershistogram',
-            type: 'GET',
-            data: {
-                country: unsafeWindow.g_strCountryCode,
-                language: unsafeWindow.g_strLanguage,
-                currency: typeof( unsafeWindow.g_rgWalletInfo ) != 'undefined' && unsafeWindow.g_rgWalletInfo.wallet_currency != 0 ? unsafeWindow.g_rgWalletInfo.wallet_currency : 1,
-                item_nameid: item_nameid
-            }
-        } ).error( function ( ) {
-        } ).success( function( data ) {
-            if ( data.success == 1 )
-            {
-                var sell_order_table = `<table class="market_commodity_orders_table"><tr><th align="right">价格</th><th align="right">数量</th></tr>`;
-                var maxsell = num < data.sell_order_graph.length ? num - 1 : data.sell_order_graph.length - 1;
-                for (var i = 0; i < maxsell; i++) {
-                    if (i == maxsell - 1) {
-                        sell_order_table += `<tr><td align="right" class="">${data.price_prefix} ${data.sell_order_graph[i][0].toFixed(2)} ${data.price_suffix} 或更高</td><td align="right">${data.sell_order_graph[maxsell][1]-data.sell_order_graph[i][1]}</td></tr>`;
-                    } else {
-                        sell_order_table += `<tr><td align="right" class="">${data.price_prefix} ${data.sell_order_graph[i][0].toFixed(2)} ${data.price_suffix}</td><td align="right">${data.sell_order_graph[i+1][1]-data.sell_order_graph[i][1]}</td></tr>`;
-                    }
-                }
-                sell_order_table += `</table>`;
-                var buy_order_table = `<table class="market_commodity_orders_table"><tr><th align="right">价格</th><th align="right">数量</th></tr>`;
-                var maxbuy = num < data.buy_order_graph.length ? num - 1 : data.buy_order_graph.length - 1;
-                for (var j = 0; j < maxbuy; j++) {
-                    if (j == maxbuy - 1) {
-                        buy_order_table += `<tr><td align="right" class="">${data.price_prefix} ${data.buy_order_graph[j][0].toFixed(2)} ${data.price_suffix} 或更低</td><td align="right">${data.buy_order_graph[maxbuy][1]-data.buy_order_graph[j][1]}</td></tr>`;
-                    } else {
-                        buy_order_table += `<tr><td align="right" class="">${data.price_prefix} ${data.buy_order_graph[j][0].toFixed(2)} ${data.price_suffix}</td><td align="right">${data.buy_order_graph[j+1][1]-data.buy_order_graph[j][1]}</td></tr>`;
-                    }
-                }
-                buy_order_table += `</table>`;
-                unsafeWindow.$J('#market_commodity_forsale').html( data.sell_order_summary );
-                unsafeWindow.$J('#market_commodity_forsale_table').html( sell_order_table );
-                unsafeWindow.$J('#market_commodity_buyrequests').html( data.buy_order_summary );
-                unsafeWindow.$J('#market_commodity_buyreqeusts_table').html( buy_order_table );
+    if (unsafeWindow.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
+        return;
+    }
+    console.log("Steam Market Show More: Creating fake hook...");
 
-                // set in the purchase dialog the default price to buy things (which should almost always be the price of the cheapest listed item)
-                if ( data.lowest_sell_order && data.lowest_sell_order > 0 ) {
-                    unsafeWindow.CreateBuyOrderDialog.m_nBestBuyPrice = data.lowest_sell_order;
-                } else if ( data.highest_buy_order && data.highest_buy_order > 0 ) {
-                    unsafeWindow.CreateBuyOrderDialog.m_nBestBuyPrice = data.highest_buy_order;
-                }
+    const fakeHook = {
+        onCommitFiberRoot: function(rendererID, root, ...args) {
+            // 在每次React提交渲染后，都尝试处理组件树
+            setTimeout(() => processFiberRoot(root), 200);
+        },
+        inject: function(renderer) {
+            const id = (fakeHook.renderers.size || 0) + 1;
+            fakeHook.renderers.set(id, renderer);
+            return id;
+        },
+        supportsFiber: true,
+        renderers: new Map(),
+    };
+    Object.defineProperty(unsafeWindow, '__REACT_DEVTOOLS_GLOBAL_HOOK__', { value: fakeHook, configurable: true });
 
-                // update the jplot graph
-                // we do this infrequently, since it's really expensive, and makes the page feel sluggish
-                var $elOrdersHistogram = unsafeWindow.$J('#orders_histogram');
-                if ( unsafeWindow.Market_OrderSpreadPlotLastRefresh
-                    && unsafeWindow.Market_OrderSpreadPlotLastRefresh + (60*60*1000) < unsafeWindow.$J.now()
-                    && $elOrdersHistogram.length )
-                {
-                    $elOrdersHistogram.html('');
-                    unsafeWindow.Market_OrderSpreadPlot = null;
-                }
+    function processFiberRoot(root) {
+        const stack = [root.current];
+        const visited = new Set();
+        // 用一个集合来跟踪本轮渲染中已经打过补丁的组件定义，避免重复操作
+        const patchedDefinitions = new Set();
 
-                if ( unsafeWindow.Market_OrderSpreadPlot == null && $elOrdersHistogram.length )
-                {
-                    unsafeWindow.Market_OrderSpreadPlotLastRefresh = unsafeWindow.$J.now();
+        while (stack.length > 0) {
+            const node = stack.pop();
+            if (!node || visited.has(node)) continue;
+            visited.add(node);
 
-                    $elOrdersHistogram.show();
-                    var line1 = data.sell_order_graph;
-                    var line2 = data.buy_order_graph;
-                    var numXAxisTicks = null;
-                    if ( unsafeWindow.$J(window).width() < 400 )
-                    {
-                        numXAxisTicks = 3;
-                    }
-                    else if ( unsafeWindow.$J(window).width() < 600 )
-                    {
-                        numXAxisTicks = 4;
-                    }
+            const { type, memoizedProps } = node;
 
-                    var numYAxisTicks = 11;
-                    var strFormatPrefix = data.price_prefix;
-                    var strFormatSuffix = data.price_suffix;
-                    var lines = [ line1, line2 ];
+            if (memoizedProps && Array.isArray(memoizedProps.orders) && memoizedProps.hasOwnProperty('currency')) {
+                const componentFunction = (type && type.type) ? type.type : type;
+                if (!componentFunction || typeof componentFunction !== 'function') continue;
 
-                    unsafeWindow.Market_OrderSpreadPlot = unsafeWindow.$J.jqplot('orders_histogram', lines, {
-                        renderer: unsafeWindow.$J.jqplot.BarRenderer,
-                        rendererOptions: {fillToZero: true},
-                        title:{text: '订购单和销售单（累积）', textAlign: 'left' },
-                        gridPadding:{left: 45, right:45, top:45},
-                        axesDefaults:{ showTickMarks:false },
-                        axes:{
-                            xaxis:{
-                                tickOptions:{formatString:strFormatPrefix + '%0.2f' + strFormatSuffix, labelPosition:'start', showMark: false},
-                                numberTicks: numXAxisTicks,
-                                min: data.graph_min_x,
-                                max: data.graph_max_x
-                            },
-                            yaxis: {
-                                pad: 1,
-                                tickOptions:{formatString:'%d'},
-                                numberTicks: numYAxisTicks,
-                                min: 0,
-                                max: data.graph_max_y
+                // 如果这个组件定义在本轮提交中已经被处理过，就跳过
+                if (patchedDefinitions.has(componentFunction)) continue;
+
+                console.log(`Steam Market Show More: Found target component definition. Patching...`);
+
+                const originalComponent = componentFunction;
+
+                // 这是我们的包装组件
+                const PatchedComponent = (props, ...args) => {
+                    // 如果 props 没有被处理过，并且包含 orders 数组
+                    if (!props[PATCH_INSTANCE_PROP_NAME] && props.orders && Array.isArray(props.orders)) {
+
+                        const ordersProxy = new Proxy(props.orders, {
+                            get(target, prop, receiver) {
+                                if (prop === 'slice') {
+                                    return function(start, end) {
+                                        if (start === 0 && end === 6) {
+                                            console.log(`Steam Market Show More: Intercepted .slice(0, 6), replacing with .slice(0, ${NUM_ROWS_TO_SHOW})`);
+                                            return target.slice(0, NUM_ROWS_TO_SHOW);
+                                        }
+                                        return target.slice(start, end);
+                                    };
+                                }
+                                return Reflect.get(target, prop, receiver);
                             }
-                        },
-                        grid: {
-                            gridLineColor: '#1b2939',
-                            borderColor: '#1b2939',
-                            background: '#101822'
-                        },
-                        cursor: {
-                            show: true,
-                            zoom: true,
-                            showTooltip: false
-                        },
-                        highlighter: {
-                            show: true,
-                            lineWidthAdjust: 2.5,
-                            sizeAdjust: 5,
-                            showTooltip: true,
-                            tooltipLocation: 'n',
-                            tooltipOffset: 20,
-                            fadeTooltip: true,
-                            yvalues: 2,
-                            formatString: "<span style=\"display: none\">%s%s</span>%s"
-                        },
-                        series: [{lineWidth:3, fill: true, fillAndStroke:true, fillAlpha: 0.3, markerOptions:{show: false, style:'circle'}}, {lineWidth:3, fill: true, fillAndStroke:true, fillAlpha: 0.3, color:'#6b8fc3', markerOptions:{show: false, style:'circle'}}],
-                        seriesColors: [ "#688F3E" ]
-                    });
+                        });
+
+                        // 创建一个新的 props 对象，包含代理和我们的标记
+                        const newProps = {
+                            ...props,
+                            orders: ordersProxy,
+                            [PATCH_INSTANCE_PROP_NAME]: true
+                        };
+
+                        // 使用新的 props 调用原始组件
+                        return originalComponent.apply(this, [newProps, ...args]);
+                    }
+
+                    // 如果 props 已经被处理过，或者不符合条件，直接调用原始组件
+                    return originalComponent.apply(this, [props, ...args]);
+                };
+
+                // 替换组件定义
+                try {
+                    if (type && type.type) {
+                        type.type = PatchedComponent;
+                    } else if (node.type && typeof node.type === 'function') {
+                        node.type = PatchedComponent;
+                    }
+                } catch (e) {
+                    console.error("Steam Market Show More: Failed to patch component type.", e);
                 }
+
+                // 将这个组件定义加入已处理列表
+                patchedDefinitions.add(componentFunction);
+                console.log("Steam Market Show More: Patch successful!");
             }
-        } );
+
+            if (node.child) stack.push(node.child);
+            if (node.sibling) stack.push(node.sibling);
+        }
     }
 })();
