@@ -59,8 +59,6 @@
                 // 如果这个组件定义在本轮提交中已经被处理过，就跳过
                 if (patchedDefinitions.has(componentFunction)) continue;
 
-                console.log(`Steam Market Show More: Found target component definition. Patching...`);
-
                 const originalComponent = componentFunction;
 
                 // 这是我们的包装组件
@@ -111,7 +109,6 @@
 
                 // 将这个组件定义加入已处理列表
                 patchedDefinitions.add(componentFunction);
-                console.log("Steam Market Show More: Patch successful!");
             }
 
             if (node.child) stack.push(node.child);
