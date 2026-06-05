@@ -4,7 +4,7 @@
 // @namespace       https://greasyfork.org/users/726
 // @description     Add some extra functions to Steam Community
 // @copyright       2015+,  Deparsoul & onlyisu & sffxzzp & DevSplash
-// @version         2025.07.17
+// @version         2026.06.06
 // @icon            https://store.steampowered.com/favicon.ico
 // @license         GPL version 3 or any later version
 // @match           http*://steamcommunity.com/*
@@ -449,17 +449,20 @@ function escEnhanceBadges() {
         $J('#market_data').html(content);
     }
 
-    // 调用 Steam 网页接口所需要的几个变量，会在分析市场页面的时候填写
-    var g_sessionID = '';
+    // 调用 Steam 网页接口所需要的几个变量
+    var g_sessionID = window.g_sessionID;
     var g_walletCurrency = '';
-    var g_strCountryCode = '';
-    var g_strLanguage = '';
+    var g_strCountryCode = JSON.parse(document.querySelector('#application_config').dataset.config).COUNTRY;
+    var g_strLanguage = window.g_strLanguage;
 
     // 改用官方函数格式化价格
     function format_price(price) {
-        return v_currencyformat(price * 100, GetCurrencyCode(g_walletCurrency), g_strCountryCode);
+        return v_currencyformat(price, GetCurrencyCode(g_walletCurrency), g_strCountryCode);
     }
 
+    function rebuild_orders(arr) {
+        return Array.from({ length: arr.length / 2 }, (_, i) => arr.slice(i * 2, i * 2 + 2));
+    }
     // 读取第 i 张卡的市场信息，延迟递归
     function load_card_listing(i) {
         if (i >= cards.length)
@@ -469,75 +472,56 @@ function escEnhanceBadges() {
             load_card_listing(i + 1);
             return;
         }
-        $J.get('//steamcommunity.com/market/listings/753/' + encodeURIComponent(card.hash), function (data) {
-            g_sessionID = data.match(/g_sessionID = "([^"]+)"/)[1];
-            g_walletCurrency = parseInt(data.match(/"wallet_currency":(\d+)/)[1]);
-            g_strLanguage = data.match(/g_strLanguage = "([^"]+)"/)[1];
-            g_strCountryCode = data.match(/g_strCountryCode = "([^"]+)"/)[1];
-            var nameid = data.match(/Market_LoadOrderSpread\( (\d+)/)[1];
-            var order = data.match(/id="mybuyorder_(\d+)">[\s\S]*<span class="market_listing_price">\s*<span class="market_listing_inline_buyorder_qty">(.+?) @<\/span>\s*(.*?)\s*<\/span>/);
-            card.nameid = nameid;
-
-            // 是否有买单
-            card.order = '0';
-            if(order){
-                card.order_id = order[1];
-                card.order_price = order[2];
-                card.order_amount = order[3];
-                card.order = order[3]+' x '+order[2];
+        $J.ajax({
+            url: 'https://steamcommunity.com/market/orderbook',
+            method: 'GET',
+            data: {
+                q: 'Load',
+                qp: JSON.stringify([753, card.hash])
+            },
+            dataType: 'json',
+        }).success(function (data) {
+            // 从 orderbook 接口获取 Currency 代码
+            g_walletCurrency = data.data.eCurrency;
+            var graph_sell = rebuild_orders(data.data.rgCompactSellOrders); // 卖单
+            var graph_buy = rebuild_orders(data.data.rgCompactBuyOrders); // 买单
+            card.graph_sell = graph_sell;
+            // 如果没有卖单则不进行处理
+            if (!graph_sell.length) {
+                return;
+            }
+            // 如果没有买单则将最低价卖单作为买单
+            if (!graph_buy.length) {
+                graph_buy = [graph_sell[0]];
             }
 
-            // 获取买卖信息
-            $J.ajax({
-                url: '//steamcommunity.com/market/itemordershistogram',
-                type: 'GET',
-                data: {
-                    country: g_strCountryCode,
-                    language: g_strLanguage,
-                    currency: g_walletCurrency,
-                    item_nameid: nameid
-                }
-            }).success(function(data){
-                var graph_sell = data.sell_order_graph; // 卖单
-                var graph_buy = data.buy_order_graph;   // 买单
-                card.graph_sell = graph_sell;
-                // 如果没有卖单则不进行处理
-                if (!graph_sell.length)
-                    return;
-                // 如果没有买单则将最低价卖单作为买单
-                if (!graph_buy.length)
-                    graph_buy = [graph_sell[0]];
+            card.price = []; // 价格信息
+            card.price_text = []; // 价格的文字说明
 
-                card.price = []; // 价格信息
-                card.price_text = []; // 价格的文字说明
+            // 尽快买齐（先占位，之后根据购买数量动态计算）
+            card.price.push(null);
+            card.price_text.push(null);
 
-                // 尽快买齐（先占位，之后根据购买数量动态计算）
-                card.price.push(null);
-                card.price_text.push(null);
+            // 最低卖单
+            card.price.push(graph_sell[0][0]);
+            card.price_text.push(format_price(graph_sell[0][0]) + ' x ' + graph_sell[0][1]);
 
-                // 最低卖单
-                card.price.push(graph_sell[0][0]);
-                card.price_text.push(format_price(graph_sell[0][0]) + ' x ' + graph_sell[0][1]);
+            var j = 0;
+            // 最高买单
+            card.price.push(graph_buy[j][0]);
+            card.price_text.push(format_price(graph_buy[j][0]) + ' x ' + graph_buy[j][1]);
 
-                var j = 0;
-                // 最高买单
-                card.price.push(graph_buy[j][0]);
-                card.price_text.push(format_price(graph_buy[j][0]) + ' x ' + graph_buy[j][1]);
+            if (graph_buy[1]) {
+                j = 1;
+            }
+            // 次高买单
+            card.price.push(graph_buy[j][0]);
+            card.price_text.push(format_price(graph_buy[j][0]) + ' x ' + graph_buy[j][1]);
 
-                if (graph_buy[1]) {
-                    j = 1;
-                }
-                // 次高买单
-                card.price.push(graph_buy[j][0]);
-                card.price_text.push(format_price(graph_buy[j][0]) + ' x ' + graph_buy[j][1]);
-
-                j = graph_buy.length - 1;
-                // 最低价格
-                card.price.push(graph_buy[j][0]);
-                card.price_text.push(format_price(graph_buy[j][0]) + ' x ' + graph_buy[j][1]);
-
-                refresh_market_table();
-            });
+            j = graph_buy.length - 1;
+            // 最低价格
+            card.price.push(graph_buy[j][0]);
+            card.price_text.push(format_price(graph_buy[j][0]) + ' x ' + graph_buy[j][1]);
 
             refresh_market_table();
             setTimeout(function () { load_card_listing(i + 1); }, 500);
