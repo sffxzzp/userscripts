@@ -457,11 +457,15 @@ function escEnhanceBadges() {
 
     // 改用官方函数格式化价格
     function format_price(price) {
-        return v_currencyformat(price, GetCurrencyCode(g_walletCurrency), g_strCountryCode);
+        return v_currencyformat(price * 100, GetCurrencyCode(g_walletCurrency), g_strCountryCode);
     }
 
     function rebuild_orders(arr) {
-        return Array.from({ length: arr.length / 2 }, (_, i) => arr.slice(i * 2, i * 2 + 2));
+        var result = [];
+        for (let i = 0; i < arr.length; i += 2) {
+            result.push([arr[i], arr[i + 1] / 100]);
+        }
+        return result;
     }
     // 读取第 i 张卡的市场信息，延迟递归
     function load_card_listing(i) {
