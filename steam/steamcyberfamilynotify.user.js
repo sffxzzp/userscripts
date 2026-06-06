@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Cyber Family Nofify
 // @namespace    https://github.com/sffxzzp
-// @version      0.74
+// @version      0.75
 // @description  show recent purchase of your steam cyber family (will exclude what you already have)
 // @author       sffxzzp
 // @match        *://*/*
@@ -314,10 +314,13 @@
             });
             delete familyOwnedGameList;
             var gameList = document.querySelector('div.Panel > div.Panel > div:has(div[data-index])');
-            gameList.querySelectorAll('div[data-index] > div').forEach(function (gameNode) {
-                let appid = _this.getAppid(gameNode.querySelector("a[href*='/app/']").href);
-                if (familyOwnedGameAppids.indexOf(appid)>0) {
-                    gameNode.style.background = "linear-gradient(to right, #47bfff 5%, #1a44c2 60%)";
+            gameList.querySelectorAll('div[data-index] div.Panel').forEach(function (gameNode) {
+                let linkNode = gameNode.querySelector("a[href*='/app/']");
+                if (linkNode) {
+                    let appid = _this.getAppid(linkNode.href);
+                    if (familyOwnedGameAppids.indexOf(appid)>0) {
+                        gameNode.style.background = "linear-gradient(to right, #47bfff 5%, #1a44c2 60%)";
+                    }
                 }
             });
         };
