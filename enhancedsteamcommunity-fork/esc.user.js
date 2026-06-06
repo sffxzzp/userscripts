@@ -463,7 +463,7 @@ function escEnhanceBadges() {
     function rebuild_orders(arr) {
         var result = [];
         for (let i = 0; i < arr.length; i += 2) {
-            result.push([arr[i], arr[i + 1] / 100]);
+            result.push([arr[i] / 100, arr[i + 1]]);
         }
         return result;
     }
