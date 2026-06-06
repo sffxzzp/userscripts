@@ -1,16 +1,16 @@
 // ==UserScript==
 // @name         Steam Wishlist Filter (React Version)
-// @namespace    https://coding.net/u/sffxzzp
-// @version      1.0
+// @namespace    https://github.com/sffxzzp
+// @version      1.01
 // @description  Filter that displays wanted discounts level in the new React-based wishlist page.
-// @author       sffxzzp
+// @author       sffxzzp & GPT-5.5-codex
 // @match        *://store.steampowered.com/wishlist
 // @match        *://store.steampowered.com/wishlist/*
-// @match        *://store.steampowered.com/wishlistnew
-// @match        *://store.steampowered.com/wishlistnew/*
 // @icon         https://store.steampowered.com/favicon.ico
 // @grant        none
 // @run-at       document-start
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/steam/steamwishlistfilter.user.js
+// @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/steam/steamwishlistfilter.user.js
 // ==/UserScript==
 
 (function() {
