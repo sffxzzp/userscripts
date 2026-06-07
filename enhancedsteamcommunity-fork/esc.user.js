@@ -4,7 +4,7 @@
 // @namespace       https://greasyfork.org/users/726
 // @description     Add some extra functions to Steam Community
 // @copyright       2015+,  Deparsoul & onlyisu & sffxzzp & DevSplash
-// @version         2026.06.07
+// @version         2026.06.08
 // @icon            https://store.steampowered.com/favicon.ico
 // @license         GPL version 3 or any later version
 // @match           http*://steamcommunity.com/*
@@ -536,7 +536,7 @@ function escEnhanceBadges() {
             var j = 0;
             // 最高买单 +0.01
             card.price.push(graph_buy[j][0]+0.01);
-            card.price_text.push(format_price(graph_buy[j][0]+0.01) + ' x ' + graph_buy[j][1]);
+            card.price_text.push(format_price(graph_buy[j][0]+0.01));
             // 最高买单
             card.price.push(graph_buy[j][0]);
             card.price_text.push(format_price(graph_buy[j][0]) + ' x ' + graph_buy[j][1]);
