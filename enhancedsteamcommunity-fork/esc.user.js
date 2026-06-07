@@ -4,7 +4,7 @@
 // @namespace       https://greasyfork.org/users/726
 // @description     Add some extra functions to Steam Community
 // @copyright       2015+,  Deparsoul & onlyisu & sffxzzp & DevSplash
-// @version         2026.06.06
+// @version         2026.06.07
 // @icon            https://store.steampowered.com/favicon.ico
 // @license         GPL version 3 or any later version
 // @match           http*://steamcommunity.com/*
@@ -88,7 +88,7 @@ var escT = {};
     escT.BoosterPack      = "Booster Pack";
     escT.ThreeCardAvg     = "Three Cards";
     escT.Fail             = "Fail";
-    escT.BatchBuyModes    = ["Buy Them Now", "Lowest Sell", "Highest Buy", "Second Buy", "Lowest"];
+    escT.BatchBuyModes    = ["Buy Them Now", "Lowest Sell", "Highest Buy +0.01", "Highest Buy", "Second Buy", "Lowest"];
 }
 // 中文支持，可仿照此格式扩展其他语言
 if (escSteamLanguage == "schinese") {
@@ -128,7 +128,7 @@ if (escSteamLanguage == "schinese") {
     escT.BoosterPack      = "补充包";
     escT.ThreeCardAvg     = "三张卡";
     escT.Fail             = "出错";
-    escT.BatchBuyModes    = ["尽快买齐", "最低卖价", "最高买价", "第二买价", "最低出价"];
+    escT.BatchBuyModes    = ["尽快买齐", "最低卖价", "最高买价 +0.01", "最高买价", "第二买价", "最低出价"];
 }else if (escSteamLanguage == "tchinese") {
     escT.Market           = "在“市集”中查看";
     escT.MarketAll        = "全部";
@@ -166,7 +166,7 @@ if (escSteamLanguage == "schinese") {
     escT.BoosterPack      = "補充包";
     escT.ThreeCardAvg     = "三張卡";
     escT.Fail             = "出錯";
-    escT.BatchBuyModes    = ["儘快買齊", "最低賣價", "最高買價", "第二買價", "最低出價"];
+    escT.BatchBuyModes    = ["儘快買齊", "最低賣價", "最高買價 +0.01", "最高買價", "第二買價", "最低出價"];
 }
 
 var escUrlBase = $J('#global_actions .user_avatar').attr('href');
@@ -346,10 +346,36 @@ function escEnhanceBadges() {
     } else {
         foil = 0;
     }
-    var link_market = '//steamcommunity.com/market/search?q=&category_753_Game[]=tag_app_' + appid + '&category_753_item_class[]=tag_item_class_2&appid=753';
-    var link_inventory = escUrlInventory + "#753_6" + "?filter=tag_filter_753_6_Game_app_" + appid;
+    var link_market = '//steamcommunity.com/market/search?appid=753&category_753_item_class=tag_item_class_2&category_753_Game=tag_app_' + appid;
+    var link_inventory = escUrlInventory + "#753_6?filter=tag_filter_753_6_Game_app_" + appid;
     var link_showcase = 'https://www.steamcardexchange.net/index.php?gamepage-appid-' + appid;
-    $J('.gamecards_inventorylink:first').html('<a class="btn_grey_grey btn_small_thin" target="_blank" id="batch_buy_card" href=' + link_market + '><span>' + escT.BatchBuyCard + '</span></a>&nbsp;<a class="btn_grey_grey btn_small_thin" target="_blank" href=' + link_market + '><span>' + escT.Market + '</span></a>&nbsp;<a class="btn_grey_grey btn_small_thin" target="_blank" href=' + link_inventory + '><span>' + escT.Inventory + '</span></a>&nbsp;<a class="btn_grey_grey btn_small_thin" target="_blank" href=' + link_showcase + '><span>' + escT.Showcase + '</span></a>&nbsp;');
+    $J('.gamecards_inventorylink:first').html('<a class="btn_grey_grey btn_medium" target="_blank" id="batch_buy_card" href=' + link_market + '><span>' + escT.BatchBuyCard + '</span></a>&nbsp;<a class="btn_grey_grey btn_medium" target="_blank" href=' + link_market + '><span>' + escT.Market + '</span></a>&nbsp;<a class="btn_grey_grey btn_medium" target="_blank" href=' + link_inventory + '><span>' + escT.Inventory + '</span></a>&nbsp;<a class="btn_grey_grey btn_medium" target="_blank" href=' + link_showcase + '><span>' + escT.Showcase + '</span></a>&nbsp;');
+
+    // 移动原生批量购买按钮，来源 SteamDB Extension: https://github.com/SteamDatabase/BrowserExtension/blob/master/scripts/community/profile_gamecards.js#L55
+    function fix_buttons() {
+        const links = document.querySelectorAll('.gamecards_inventorylink a');
+        for( const element of links )
+        {
+            const link = new URL( element.href );
+            if( link.host.endsWith( '.steamstatic.com' ) )
+            {
+                link.host = window.location.host;
+                element.href = link.toString();
+            }
+            if( link.pathname === '/market/multibuy' )
+            {
+                // 新页面查看
+                element.target = "_blank";
+                const topLinks = document.querySelector( '.badge_detail_tasks .gamecards_inventorylink' );
+                if( topLinks )
+                {
+                    topLinks.append( element );
+                    topLinks.append( document.createTextNode( ' ' ) );
+                }
+            }
+        }
+    }
+    fix_buttons();
 
     // 将空值转换成问号
     function text_wrapper(value) {
@@ -451,7 +477,7 @@ function escEnhanceBadges() {
 
     // 调用 Steam 网页接口所需要的几个变量
     var g_sessionID = window.g_sessionID;
-    var g_walletCurrency = '';
+    var g_walletCurrency = 23;
     var g_strCountryCode = JSON.parse(document.querySelector('#application_config').dataset.config).COUNTRY;
     var g_strLanguage = window.g_strLanguage;
 
@@ -460,6 +486,7 @@ function escEnhanceBadges() {
         return v_currencyformat(price * 100, GetCurrencyCode(g_walletCurrency), g_strCountryCode);
     }
 
+    // 数组重新分组
     function rebuild_orders(arr) {
         var result = [];
         for (let i = 0; i < arr.length; i += 2) {
@@ -476,15 +503,11 @@ function escEnhanceBadges() {
             load_card_listing(i + 1);
             return;
         }
-        $J.ajax({
-            url: 'https://steamcommunity.com/market/orderbook',
-            method: 'GET',
-            data: {
-                q: 'Load',
-                qp: JSON.stringify([753, card.hash])
-            },
-            dataType: 'json',
-        }).success(function (data) {
+        // 使用新版 orderbook 接口
+        fetch(`//steamcommunity.com/market/orderbook?q=Load&qp=${JSON.stringify([753, card.hash])}`).then(res => {
+            if (!res.ok) { throw new Error(`HTTP error! Status: ${res.status}`); }
+            return res.json()
+        }).then(data => {
             // 从 orderbook 接口获取 Currency 代码
             g_walletCurrency = data.data.eCurrency;
             var graph_sell = rebuild_orders(data.data.rgCompactSellOrders); // 卖单
@@ -511,6 +534,9 @@ function escEnhanceBadges() {
             card.price_text.push(format_price(graph_sell[0][0]) + ' x ' + graph_sell[0][1]);
 
             var j = 0;
+            // 最高买单 +0.01
+            card.price.push(graph_buy[j][0]+0.01);
+            card.price_text.push(format_price(graph_buy[j][0]+0.01) + ' x ' + graph_buy[j][1]);
             // 最高买单
             card.price.push(graph_buy[j][0]);
             card.price_text.push(format_price(graph_buy[j][0]) + ' x ' + graph_buy[j][1]);
@@ -529,7 +555,8 @@ function escEnhanceBadges() {
 
             refresh_market_table();
             setTimeout(function () { load_card_listing(i + 1); }, 500);
-        }).fail(function () {
+        }).catch(err => {
+            console.error(err);
             // TODO: 这里可能需要一个更好的解决方法
             alert(escT.BatchBuyCheck);
         });
@@ -608,7 +635,7 @@ function escEnhanceBadges() {
             t.before('<div class="badge_detail_tasks"><div class="gamecards_inventorylink">'+escT.CurrentLevel+' : <span style="background-color: rgba(0, 0, 0, 0.2); border: 1px solid #000; border-radius: 3px; box-shadow: 1px 1px 0 0 rgba(91, 132, 181, 0.2); color: #909090; width: 30px; display: inline-block;">'+current_level+'</span>&nbsp;'+escT.TargetLevel+' : <input type="text" value="5" id="target_level" style="width:30px;"></div><div class="gamecards_inventorylink" id="market_data">'+escT.Loading+'</div></div><div style="clear: both"></div>');
 
             // 出价按钮
-            var btn = '&nbsp;' + escT.BatchBuyBtn + ':';
+            var btn = '<br>' + escT.BatchBuyBtn + ':';
             for (var j = 0; j < escT.BatchBuyModes.length; ++j) {
                 btn += '&nbsp;<a class="btn_grey_grey btn_small_thin btn_batch_buy" style="display:none;" data-mode="' + j + '"><span>' + escT.BatchBuyModes[j] + ' <span class="total_cost">?</span></span></a>';
             }
@@ -666,56 +693,65 @@ function escEnhanceBadges() {
 
             // 检查补充包价格
             if (foil == 0) {
-                $J.getJSON('//steamcommunity.com/market/search/render/?category_753_item_class[]=tag_item_class_5&appid=753&category_753_Game[]=tag_app_' + appid, function (data) {
-                    var list = $J('<div>' + data.results_html + '</div>');
-                    var l = list.find('.market_listing_row_link');
-                    if (l.length == 1) {
-                        var quantity = l.find('.market_listing_num_listings_qty').text();
-                        quantity = parseInt(quantity.replace(/[^\d]/, ''));
-                        var link = l.attr('href');
-                        var price = l.find('.market_listing_their_price .market_table_value>span.normal_price').text().trim();
+                // 替换为新版请求
+                fetch('//steamcommunity.com/market/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json; charset=utf-8',
+                        'X-Valve-Action-Type': 'ZFJAHYDA:SearchMarketListings',
+                        'X-Valve-Request-Type': 'routeAction'
+                    },
+                    body: `[{"appid":753,"filters":{"category_753_item_class":["tag_item_class_5"],"category_753_Game":["tag_app_${appid}"]},"price":{"eCurrency":${g_walletCurrency}},"accessoryFilters":{},"start":0}]`,
+                }).then(res => {
+                    if (!res.ok) { throw new Error(`HTTP error! Status: ${res.status}`); }
+                    return res.json()
+                }).then(data => {
+                    if (data.results.length == 1) {
+                        var l = data.results[0];
                         booster = {
-                            'link': link,
-                            'quantity': quantity,
-                            'price': price
-                        };
+                            link: 'https://steamcommunity.com/market/listings/753/' + encodeURIComponent(l.strHash),
+                            quantity: l.cSellOrders,
+                            price: l.strMinSellSubtotal
+                        }
                     }
-                    //console.log('booster', booster);
-                });
+                }).catch(console.error);
             }
 
             // 通过市场获取所有卡片列表
-            $J.getJSON('//steamcommunity.com/market/search/render/?start=0&count=20&category_753_cardborder[]=tag_cardborder_'+foil+'&appid=753&category_753_item_class%5B%5D=marketable&category_753_Game[]=tag_app_'+appid, function(data){
-                var list = $J('<div>'+data.results_html+'</div>');
-                list.find('.market_listing_row_link').each(function(){
-                    var l = $J(this);
-                    //var name = l.find('.market_listing_item_name').text().trim();
-                    //var img = l.find('.market_listing_item_img').attr('src').replace('/62fx62f', '');
-                    var quantity = l.find('.market_listing_num_listings_qty').text();
-                    quantity = parseInt(quantity.replace(/[^\d]/, ''));
-                    var link = l.attr('href');
-                    var hash = link.match(/\/753\/([^?]+)/)[1];
-                    hash = decodeURIComponent(hash);
+            // 替换请求为新版
+            fetch('//steamcommunity.com/market/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'X-Valve-Action-Type': 'ZFJAHYDA:SearchMarketListings',
+                    'X-Valve-Request-Type': 'routeAction'
+                },
+                body: `[{"appid":753,"filters":{"category_753_item_class":["tag_item_class_2"],"category_753_cardborder":["tag_cardborder_${foil}"],"category_753_Game":["tag_app_${appid}"]},"price":{"eCurrency":${g_walletCurrency}},"accessoryFilters":{},"start":0}]`,
+            }).then(res => {
+                if (!res.ok) { throw new Error(`HTTP error! Status: ${res.status}`); }
+                return res.json()
+            }).then(data => {
+                var list = data.results;
+                list.forEach(element => {
                     var i = -1;
                     var match, hash_name;
-                    //i = cards.findIndexCallback(function (c) { return c.img == img; });
+                    var hash = element.strHash;
                     if (i < 0 && (match = hash.match(/\d+-(.*)/))) {
                         hash_name = match[1].trim();
-                        i = findIndexCallback(cards, function (c) { return c.name == hash_name; });
+                        i = findIndexCallback(cards, c => c.name == hash_name);
                     }
                     if (i < 0 && (match = hash.match(/\d+-(.*)\((Foil|Foil Trading Card|Trading Card)\)/))) {
                         hash_name = match[1].trim();
-                        i = findIndexCallback(cards, function (c) { return c.name == hash_name; });
+                        i = findIndexCallback(cards, c => c.name == hash_name);
                     }
                     if (i > -1) {
-                        cards[i]['quantity'] = quantity;
-                        cards[i]['hash'] = hash;
+                        cards[i].quantity = element.cSellOrders;
+                        cards[i].hash = hash;
                     }
-                    //console.log('cards', cards);
                     refresh_market_table();
                 });
                 load_card_listing(0);
-            });
+            }).catch(console.error);
         }
         return false;
     });
@@ -764,10 +800,10 @@ function escOneClickBuying(){
 // cookie 操作函数
 function escGetCookie(c_name) {
     if (document.cookie.length > 0) {
-        c_start = document.cookie.indexOf(c_name + '=');
+        var c_start = document.cookie.indexOf(c_name + '=');
         if (c_start != -1) {
             c_start = c_start + c_name.length + 1;
-            c_end = document.cookie.indexOf(';', c_start);
+            var c_end = document.cookie.indexOf(';', c_start);
             if (c_end == -1) c_end = document.cookie.length;
             return unescape(document.cookie.substring(c_start, c_end));
         }
