@@ -1,0 +1,411 @@
+// ==UserScript==
+// @name         Steam Store BundleList
+// @namespace    https://github.com/sffxzzp
+// @icon         https://store.steampowered.com/favicon.ico
+// @author       sffxzzp & GPT-5.5-codex
+// @version      1.0.0
+// @description  Show every bundle from the current app BundleList on the app StorePage, sorted by discount percentage.
+// @match        https://store.steampowered.com/app/*
+// @run-at       document-idle
+// @grant        none
+// @updateURL    https://github.com/sffxzzp/userscripts/raw/master/steam/steamstorebundlelist.user.js
+// @downloadURL  https://github.com/sffxzzp/userscripts/raw/master/steam/steamstorebundlelist.user.js
+// ==/UserScript==
+
+(function () {
+  'use strict';
+
+  const APP_ID = getCurrentAppId();
+  const BUNDLELIST_URL = `https://store.steampowered.com/bundlelist/${APP_ID}`;
+  const SECTION_ID = 'tm_bundlelist_discount_sorted';
+
+  if (!APP_ID) {
+    return;
+  }
+
+  function getCurrentAppId() {
+    const match = location.pathname.match(/^\/app\/(\d+)(?:\/|$)/);
+    return match ? match[1] : '';
+  }
+
+  const css = `
+    #${SECTION_ID} {
+      margin: 18px 0;
+    }
+
+    #${SECTION_ID} .tm_bundle_header {
+      color: #fff;
+      font-size: 20px;
+      font-weight: 400;
+      margin: 0 0 8px;
+      text-transform: uppercase;
+    }
+
+    #${SECTION_ID} .tm_bundle_status {
+      background: rgba(0, 0, 0, 0.22);
+      color: #acb2b8;
+      padding: 12px;
+    }
+
+    #${SECTION_ID} .tm_bundle_card {
+      align-items: stretch;
+      background: rgba(0, 0, 0, 0.22);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: #c7d5e0;
+      display: grid;
+      grid-template-columns: 231px minmax(0, 1fr) auto;
+      min-height: 88px;
+      text-decoration: none;
+    }
+
+    #${SECTION_ID} .tm_bundle_card:hover {
+      background: rgba(102, 192, 244, 0.16);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    #${SECTION_ID} .tm_bundle_capsule {
+      background: rgba(0, 0, 0, 0.25);
+      height: 87px;
+      object-fit: cover;
+      width: 231px;
+    }
+
+    #${SECTION_ID} .tm_bundle_info {
+      min-width: 0;
+      padding: 12px 14px;
+    }
+
+    #${SECTION_ID} .tm_bundle_name {
+      color: #fff;
+      font-size: 16px;
+      line-height: 21px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #${SECTION_ID} .tm_bundle_meta {
+      color: #8f98a0;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    #${SECTION_ID} .tm_bundle_purchase {
+      align-items: center;
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      padding: 12px;
+    }
+
+    #${SECTION_ID} .tm_bundle_discount {
+      align-items: center;
+      background: #4c6b22;
+      color: #a4d007;
+      display: flex;
+      font-size: 26px;
+      min-height: 38px;
+      padding: 0 8px;
+    }
+
+    #${SECTION_ID} .tm_bundle_prices {
+      min-width: 82px;
+      text-align: right;
+    }
+
+    #${SECTION_ID} .tm_bundle_original {
+      color: #738895;
+      font-size: 11px;
+      line-height: 12px;
+      text-decoration: line-through;
+    }
+
+    #${SECTION_ID} .tm_bundle_final {
+      color: #c7d5e0;
+      font-size: 13px;
+      line-height: 16px;
+    }
+
+    #${SECTION_ID} .tm_bundle_actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 92px;
+    }
+
+    #${SECTION_ID} .tm_bundle_actions a {
+      text-align: center;
+    }
+
+    @media screen and (max-width: 700px) {
+      #${SECTION_ID} .tm_bundle_card {
+        grid-template-columns: 120px minmax(0, 1fr);
+      }
+
+      #${SECTION_ID} .tm_bundle_capsule {
+        height: 45px;
+        width: 120px;
+      }
+
+      #${SECTION_ID} .tm_bundle_purchase {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+      }
+    }
+  `;
+
+  function addStyle() {
+    if (document.getElementById(`${SECTION_ID}_style`)) {
+      return;
+    }
+
+    const style = document.createElement('style');
+    style.id = `${SECTION_ID}_style`;
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+
+  function parseJsonParseCalls(html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const parsed = [];
+    const re = /JSON\.parse\("((?:\\.|[^"\\])*)"\)/g;
+
+    for (const script of doc.scripts) {
+      const text = script.textContent || '';
+      let match;
+      while ((match = re.exec(text)) !== null) {
+        try {
+          const jsonText = JSON.parse(`"${match[1]}"`);
+          const root = JSON.parse(jsonText);
+          parsed.push(root);
+
+          if (typeof root.queryData === 'string') {
+            parsed.push(JSON.parse(root.queryData));
+          }
+        } catch (_err) {
+          // Some inline scripts contain small JSON.parse calls that are not SSR data.
+        }
+      }
+    }
+
+    return parsed;
+  }
+
+  function walk(value, visit) {
+    if (!value || typeof value !== 'object') {
+      return;
+    }
+
+    visit(value);
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        walk(item, visit);
+      }
+      return;
+    }
+
+    for (const key of Object.keys(value)) {
+      walk(value[key], visit);
+    }
+  }
+
+  function extractBundles(html) {
+    const items = new Map();
+    const assets = new Map();
+
+    for (const root of parseJsonParseCalls(html)) {
+      walk(root, (obj) => {
+        if (!Array.isArray(obj.queryKey) || !obj.state || !obj.state.data) {
+          return;
+        }
+
+        const itemKey = obj.queryKey[1];
+        const include = obj.queryKey[2];
+        if (typeof itemKey !== 'string' || !itemKey.startsWith('bundle_')) {
+          return;
+        }
+
+        const id = Number(itemKey.replace('bundle_', ''));
+        if (!Number.isFinite(id)) {
+          return;
+        }
+
+        if (include === 'default_info' && obj.state.data.best_purchase_option) {
+          items.set(id, obj.state.data);
+        } else if (include === 'include_assets') {
+          assets.set(id, obj.state.data);
+        }
+      });
+    }
+
+    return Array.from(items.values())
+      .map((item, index) => ({
+        id: item.id,
+        name: item.name || `Bundle ${item.id}`,
+        url: `https://store.steampowered.com/${item.store_url_path || `bundle/${item.id}/`}`,
+        includedGameCount: Number(item.best_purchase_option.included_game_count || 0),
+        option: item.best_purchase_option,
+        asset: assets.get(item.id) || {},
+        originalIndex: index,
+      }))
+      .sort((a, b) => {
+        const discountDelta = Number(b.option.discount_pct || 0) - Number(a.option.discount_pct || 0);
+        if (discountDelta !== 0) {
+          return discountDelta;
+        }
+
+        const bundleDiscountDelta =
+          Number(b.option.bundle_discount_pct || 0) - Number(a.option.bundle_discount_pct || 0);
+        if (bundleDiscountDelta !== 0) {
+          return bundleDiscountDelta;
+        }
+
+        return a.originalIndex - b.originalIndex;
+      });
+  }
+
+  function assetUrl(asset, filenameKey) {
+    if (!asset.asset_url_format || !asset[filenameKey]) {
+      return '';
+    }
+
+    return `https://shared.fastly.steamstatic.com/store_item_assets/${asset.asset_url_format.replace(
+      '${FILENAME}',
+      asset[filenameKey],
+    )}`;
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function renderBundle(bundle) {
+    const option = bundle.option;
+    const discount = Number(option.discount_pct || 0);
+    const bundleDiscount = Number(option.bundle_discount_pct || 0);
+    const image = assetUrl(bundle.asset, 'small_capsule') || assetUrl(bundle.asset, 'header');
+    const meta = [
+      bundle.includedGameCount ? `${bundle.includedGameCount} 个项目` : '',
+      bundleDiscount ? `捆绑包额外折扣 ${bundleDiscount}%` : '',
+    ]
+      .filter(Boolean)
+      .join(' · ');
+
+    return `
+      <div class="tm_bundle_card" data-bundle-id="${bundle.id}" data-discount="${discount}">
+        <a href="${escapeHtml(bundle.url)}">
+          ${
+            image
+              ? `<img class="tm_bundle_capsule" src="${escapeHtml(image)}" alt="">`
+              : '<div class="tm_bundle_capsule"></div>'
+          }
+        </a>
+        <a class="tm_bundle_info" href="${escapeHtml(bundle.url)}">
+          <div class="tm_bundle_name">${escapeHtml(bundle.name)}</div>
+          <div class="tm_bundle_meta">${escapeHtml(meta)}</div>
+        </a>
+        <div class="tm_bundle_purchase">
+          <div class="tm_bundle_discount">-${discount}%</div>
+          <div class="tm_bundle_prices">
+            ${
+              option.formatted_original_price
+                ? `<div class="tm_bundle_original">${escapeHtml(option.formatted_original_price)}</div>`
+                : ''
+            }
+            <div class="tm_bundle_final">${escapeHtml(option.formatted_final_price || '')}</div>
+          </div>
+          <div class="tm_bundle_actions">
+            <a class="btn_blue_steamui btn_medium" href="${escapeHtml(bundle.url)}"><span>详情</span></a>
+            <a class="btn_green_steamui btn_medium" href="javascript:addBundleToCart(${bundle.id});"><span>加入购物车</span></a>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function findInsertionPoint() {
+    const purchaseArea = document.querySelector('#game_area_purchase');
+    if (!purchaseArea) {
+      return null;
+    }
+
+    const firstDlc = document.querySelector('#gameAreaDLCSection');
+    const existingBundles = Array.from(
+      purchaseArea.querySelectorAll('.game_area_purchase_game_wrapper.dynamic_bundle_description'),
+    );
+    const bundleListLinks = Array.from(purchaseArea.querySelectorAll(`a[href*="/bundlelist/${APP_ID}"]`));
+
+    return {
+      purchaseArea,
+      before: firstDlc && firstDlc.parentElement === purchaseArea ? firstDlc : null,
+      existingBundles,
+      bundleListLinks,
+    };
+  }
+
+  function upsertSection(html) {
+    const insertion = findInsertionPoint();
+    if (!insertion) {
+      return false;
+    }
+
+    for (const node of insertion.existingBundles) {
+      node.remove();
+    }
+
+    for (const node of insertion.bundleListLinks) {
+      node.remove();
+    }
+
+    let section = document.getElementById(SECTION_ID);
+    if (!section) {
+      section = document.createElement('div');
+      section.id = SECTION_ID;
+      insertion.purchaseArea.insertBefore(section, insertion.before);
+    }
+
+    section.innerHTML = html;
+    return true;
+  }
+
+  async function main() {
+    addStyle();
+    upsertSection('<h2 class="tm_bundle_header">捆绑包</h2><div class="tm_bundle_status">正在读取 BundleList...</div>');
+
+    const response = await fetch(BUNDLELIST_URL, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error(`BundleList request failed: ${response.status}`);
+    }
+
+    const html = await response.text();
+    const bundles = extractBundles(html);
+    if (!bundles.length) {
+      throw new Error('No bundle data found in BundleList SSR data');
+    }
+
+    const content = `
+      <h2 class="tm_bundle_header">捆绑包</h2>
+      ${bundles.map(renderBundle).join('')}
+    `;
+
+    if (!upsertSection(content)) {
+      throw new Error('Cannot find StorePage purchase area');
+    }
+  }
+
+  main().catch((err) => {
+    console.error('[Steam BundleList Discount Sort]', err);
+    upsertSection(
+      `<h2 class="tm_bundle_header">捆绑包</h2><div class="tm_bundle_status">读取 BundleList 失败：${escapeHtml(
+        err.message,
+      )}</div>`,
+    );
+  });
+})();
