@@ -3,7 +3,7 @@
 // @namespace    https://github.com/sffxzzp
 // @icon         https://store.steampowered.com/favicon.ico
 // @author       sffxzzp & GPT-5.5-codex
-// @version      1.0.0
+// @version      1.0.1
 // @description  Show every bundle from the current app BundleList on the app StorePage, sorted by discount percentage.
 // @match        https://store.steampowered.com/app/*
 // @run-at       document-idle
@@ -89,6 +89,10 @@
       color: #8f98a0;
       font-size: 12px;
       margin-top: 6px;
+    }
+
+    #${SECTION_ID} .tm_bundle_meta strong {
+      color: #a4d007;
     }
 
     #${SECTION_ID} .tm_bundle_purchase {
@@ -251,15 +255,15 @@
         originalIndex: index,
       }))
       .sort((a, b) => {
-        const discountDelta = Number(b.option.discount_pct || 0) - Number(a.option.discount_pct || 0);
-        if (discountDelta !== 0) {
-          return discountDelta;
-        }
-
         const bundleDiscountDelta =
           Number(b.option.bundle_discount_pct || 0) - Number(a.option.bundle_discount_pct || 0);
         if (bundleDiscountDelta !== 0) {
           return bundleDiscountDelta;
+        }
+
+        const discountDelta = Number(b.option.discount_pct || 0) - Number(a.option.discount_pct || 0);
+        if (discountDelta !== 0) {
+          return discountDelta;
         }
 
         return a.originalIndex - b.originalIndex;
@@ -292,8 +296,8 @@
     const bundleDiscount = Number(option.bundle_discount_pct || 0);
     const image = assetUrl(bundle.asset, 'small_capsule') || assetUrl(bundle.asset, 'header');
     const meta = [
-      bundle.includedGameCount ? `${bundle.includedGameCount} 个项目` : '',
-      bundleDiscount ? `捆绑包额外折扣 ${bundleDiscount}%` : '',
+      bundle.includedGameCount ? escapeHtml(`${bundle.includedGameCount} 个项目`) : '',
+      bundleDiscount ? `<strong>${escapeHtml(`捆绑包额外折扣 ${bundleDiscount}%`)}</strong>` : '',
     ]
       .filter(Boolean)
       .join(' · ');
@@ -309,7 +313,7 @@
         </a>
         <a class="tm_bundle_info" href="${escapeHtml(bundle.url)}">
           <div class="tm_bundle_name">${escapeHtml(bundle.name)}</div>
-          <div class="tm_bundle_meta">${escapeHtml(meta)}</div>
+          <div class="tm_bundle_meta">${meta}</div>
         </a>
         <div class="tm_bundle_purchase">
           <div class="tm_bundle_discount">-${discount}%</div>
@@ -375,6 +379,13 @@
     return true;
   }
 
+  function hideSection() {
+    const section = document.getElementById(SECTION_ID);
+    if (section) {
+      section.remove();
+    }
+  }
+
   async function main() {
     addStyle();
     upsertSection('<h2 class="tm_bundle_header">捆绑包</h2><div class="tm_bundle_status">正在读取 BundleList...</div>');
@@ -402,10 +413,6 @@
 
   main().catch((err) => {
     console.error('[Steam BundleList Discount Sort]', err);
-    upsertSection(
-      `<h2 class="tm_bundle_header">捆绑包</h2><div class="tm_bundle_status">读取 BundleList 失败：${escapeHtml(
-        err.message,
-      )}</div>`,
-    );
+    hideSection();
   });
 })();
