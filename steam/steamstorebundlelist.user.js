@@ -3,7 +3,7 @@
 // @namespace    https://github.com/sffxzzp
 // @icon         https://store.steampowered.com/favicon.ico
 // @author       sffxzzp & GPT-5.5-codex
-// @version      1.0.1
+// @version      1.0.2
 // @description  Show every bundle from the current app BundleList on the app StorePage, sorted by discount percentage.
 // @match        https://store.steampowered.com/app/*
 // @run-at       document-idle
@@ -111,6 +111,11 @@
       font-size: 26px;
       min-height: 38px;
       padding: 0 8px;
+    }
+
+    #${SECTION_ID} .tm_bundle_discount_extra {
+      font-size: 18px;
+      white-space: nowrap;
     }
 
     #${SECTION_ID} .tm_bundle_prices {
@@ -249,7 +254,9 @@
         id: item.id,
         name: item.name || `Bundle ${item.id}`,
         url: `https://store.steampowered.com/${item.store_url_path || `bundle/${item.id}/`}`,
-        includedGameCount: Number(item.best_purchase_option.included_game_count || 0),
+        includedGameCount: Array.isArray(item.included_appids)
+          ? item.included_appids.length
+          : Number(item.best_purchase_option.included_game_count || 0),
         option: item.best_purchase_option,
         asset: assets.get(item.id) || {},
         originalIndex: index,
@@ -292,8 +299,12 @@
 
   function renderBundle(bundle) {
     const option = bundle.option;
-    const discount = Number(option.discount_pct || 0);
+    const discount = option.discount_pct == null ? null : Number(option.discount_pct);
     const bundleDiscount = Number(option.bundle_discount_pct || 0);
+    const discountLabel = discount == null ? `额外 -${bundleDiscount}%` : `-${discount}%`;
+    const discountClass = discount == null ? 'tm_bundle_discount tm_bundle_discount_extra' : 'tm_bundle_discount';
+    const discountValue = discount == null ? 0 : discount;
+    const originalPrice = option.formatted_original_price || option.formatted_price_before_bundle_discount || '';
     const image = assetUrl(bundle.asset, 'small_capsule') || assetUrl(bundle.asset, 'header');
     const meta = [
       bundle.includedGameCount ? escapeHtml(`${bundle.includedGameCount} 个项目`) : '',
@@ -303,7 +314,7 @@
       .join(' · ');
 
     return `
-      <div class="tm_bundle_card" data-bundle-id="${bundle.id}" data-discount="${discount}">
+      <div class="tm_bundle_card" data-bundle-id="${bundle.id}" data-discount="${discountValue}">
         <a href="${escapeHtml(bundle.url)}">
           ${
             image
@@ -316,11 +327,11 @@
           <div class="tm_bundle_meta">${meta}</div>
         </a>
         <div class="tm_bundle_purchase">
-          <div class="tm_bundle_discount">-${discount}%</div>
+          <div class="${discountClass}">${escapeHtml(discountLabel)}</div>
           <div class="tm_bundle_prices">
             ${
-              option.formatted_original_price
-                ? `<div class="tm_bundle_original">${escapeHtml(option.formatted_original_price)}</div>`
+              originalPrice
+                ? `<div class="tm_bundle_original">${escapeHtml(originalPrice)}</div>`
                 : ''
             }
             <div class="tm_bundle_final">${escapeHtml(option.formatted_final_price || '')}</div>
