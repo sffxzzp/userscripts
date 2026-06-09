@@ -6,7 +6,9 @@
 // @author       sffxzzp & GPT-5.5-codex
 // @match        https://steamcommunity.com/profiles/*/games*
 // @match        https://steamcommunity.com/id/*/games*
-// @grant        none
+// @grant        GM_xmlhttpRequest
+// @grant        unsafeWindow
+// @connect      store.steampowered.com
 // @run-at       document-idle
 // @icon         https://store.steampowered.com/favicon.ico
 // @updateURL    https://github.com/sffxzzp/userscripts/raw/master/steam/steamunowned.user.js
@@ -114,8 +116,13 @@
         });
     };
 
+    SteamUnowned.prototype.getPageWindow = function () {
+        return typeof unsafeWindow !== "undefined" ? unsafeWindow : window;
+    };
+
     SteamUnowned.prototype.getLoaderData = function () {
-        var loaderData = window.SSR && window.SSR.loaderData;
+        var pageWindow = this.getPageWindow();
+        var loaderData = pageWindow.SSR && pageWindow.SSR.loaderData;
         if (!Array.isArray(loaderData)) { return []; }
 
         return loaderData.map((item) => {
@@ -129,7 +136,8 @@
     };
 
     SteamUnowned.prototype.getQueryData = function () {
-        var queryData = window.SSR && window.SSR.renderContext && window.SSR.renderContext.queryData;
+        var pageWindow = this.getPageWindow();
+        var queryData = pageWindow.SSR && pageWindow.SSR.renderContext && pageWindow.SSR.renderContext.queryData;
         if (!queryData) { return { queries: [] }; }
         if (typeof queryData !== "string") { return queryData; }
 
@@ -141,9 +149,10 @@
     };
 
     SteamUnowned.prototype.getCurrentSteamId = function (queryData) {
-        if (window.g_steamID) { return String(window.g_steamID); }
+        var pageWindow = this.getPageWindow();
+        if (pageWindow.g_steamID) { return String(pageWindow.g_steamID); }
 
-        var renderUser = window.SSR && window.SSR.renderContext && window.SSR.renderContext.user;
+        var renderUser = pageWindow.SSR && pageWindow.SSR.renderContext && pageWindow.SSR.renderContext.user;
         if (renderUser && renderUser.steamid) { return String(renderUser.steamid); }
 
         var loaderUser = this.getLoaderData().find((item) => {
@@ -193,15 +202,7 @@
     };
 
     SteamUnowned.prototype.loadMyOwnedAppids = async function () {
-        var response = await fetch(CONFIG.storeUserDataUrl, {
-            credentials: "include",
-            cache: "no-store",
-            headers: { Accept: "application/json" },
-        });
-
-        if (!response.ok) { throw new Error("读取 Steam dynamicstore/userdata 失败：HTTP " + response.status); }
-
-        var data = await response.json();
+        var data = await this.requestJson(CONFIG.storeUserDataUrl);
         var ownedAppids = this.extractNumbers(data && data.rgOwnedApps);
         var ownedPackageIds = this.extractNumbers(data && data.rgOwnedPackages);
         var packageAppids = this.extractPackageAppids(data && data.rgMasterSubApps, ownedPackageIds);
@@ -211,6 +212,40 @@
 
         var keys = data && typeof data === "object" ? Object.keys(data).join(", ") : "无";
         throw new Error("dynamicstore/userdata 中 rgOwnedApps 为空，且无法从 rgOwnedPackages 映射出 appid。rgOwnedApps=" + ownedAppids.length + "，rgOwnedPackages=" + ownedPackageIds.length + "，包映射 appid=" + packageAppids.length + "。返回字段：" + keys);
+    };
+
+    SteamUnowned.prototype.requestJson = function (url) {
+        return new Promise((resolve, reject) => {
+            GM_xmlhttpRequest({
+                method: "GET",
+                url: url,
+                headers: { Accept: "application/json" },
+                responseType: "json",
+                onload: (response) => {
+                    if (response.status < 200 || response.status >= 300) {
+                        reject(new Error("读取 Steam dynamicstore/userdata 失败：HTTP " + response.status));
+                        return;
+                    }
+
+                    if (response.response && typeof response.response === "object") {
+                        resolve(response.response);
+                        return;
+                    }
+
+                    try {
+                        resolve(JSON.parse(response.responseText));
+                    } catch (error) {
+                        reject(new Error("Steam dynamicstore/userdata 返回的不是 JSON：" + (error.message || error)));
+                    }
+                },
+                onerror: () => {
+                    reject(new Error("读取 Steam dynamicstore/userdata 网络请求失败。"));
+                },
+                ontimeout: () => {
+                    reject(new Error("读取 Steam dynamicstore/userdata 请求超时。"));
+                },
+            });
+        });
     };
 
     SteamUnowned.prototype.extractNumbers = function (value) {
