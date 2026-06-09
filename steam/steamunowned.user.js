@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Unowned Games
 // @namespace    https://github.com/sffxzzp
-// @version      2.0.1
+// @version      2.0.2
 // @description  Display games on the “All Games” page for Steam friends that the friend owns but the currently logged-in user does not.
 // @author       sffxzzp & GPT-5.5-codex
 // @match        https://steamcommunity.com/profiles/*/games*
