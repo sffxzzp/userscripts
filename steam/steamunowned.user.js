@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Unowned Games
 // @namespace    https://github.com/sffxzzp
-// @version      2.0.0
+// @version      2.0.1
 // @description  Display games on the “All Games” page for Steam friends that the friend owns but the currently logged-in user does not.
 // @author       sffxzzp & GPT-5.5-codex
 // @match        https://steamcommunity.com/profiles/*/games*
@@ -239,6 +239,22 @@
 
     SteamUnowned.prototype.renderResult = function () {
         var games = this.getFilteredGames();
+        var stats = this.getStats(games);
+
+        this.render({ stats: stats, games: games });
+    };
+
+    SteamUnowned.prototype.updateResults = function () {
+        var games = this.getFilteredGames();
+        var stats = this.getStats(games);
+        var oldStats = this.panel && this.panel.querySelector(".su-stats");
+        var oldList = this.panel && this.panel.querySelector(".su-list");
+
+        if (oldStats) { oldStats.replaceWith(this.createStats(stats)); }
+        if (oldList) { oldList.replaceWith(this.createGameList(games)); }
+    };
+
+    SteamUnowned.prototype.getStats = function (games) {
         var stats = [
             ["好友全部游戏", this.friendGames.length],
             ["你的游戏", this.myOwnedAppids.size],
@@ -247,7 +263,7 @@
         ];
 
         if (this.filter) { stats.push(["当前显示", games.length]); }
-        this.render({ stats: stats, games: games });
+        return stats;
     };
 
     SteamUnowned.prototype.getFilteredGames = function () {
@@ -360,13 +376,13 @@
         search.value = this.filter;
         search.addEventListener("input", () => {
             self.filter = search.value;
-            self.renderResult();
+            self.updateResults();
         });
 
         copy.type = "button";
         copy.textContent = "复制清单";
         copy.addEventListener("click", () => {
-            self.copyGames(games, copy);
+            self.copyGames(self.getFilteredGames(), copy);
         });
 
         toolbar.appendChild(search);
