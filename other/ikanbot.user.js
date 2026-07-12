@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iKanBot ArtPlayer
 // @namespace    https://github.com/sffxzzp
-// @version      0.70
+// @version      0.71
 // @description  Replace ikanbot.com's default player to artplayer
 // @author       sffxzzp
 // @require      https://fastly.jsdelivr.net/npm/hls.js@1.1.3/dist/hls.min.js
@@ -169,10 +169,8 @@
                     callbacks.onSuccess = function (response, stats, context, networkDetails) {
                         // 如果是m3u8文件，处理内容以移除广告分段
                         if (response.data && typeof response.data === 'string') {
-                            console.log(response.data);
                             // 过滤掉广告段 - 实现更精确的广告过滤逻辑
                             response.data = m3u8Filter(response.data);
-                            console.log(response.data);
                         }
                         return onSuccess(response, stats, context, networkDetails);
                     };
@@ -184,7 +182,24 @@
     }
 
     // the rest of the code should run when document loaded instead of document-start
-    document.addEventListener('DOMContentLoaded', init);
+    let startTries = 0;
+    function start() {
+        // 等站点异步建出播放器 DOM,再替换(和 unload 的轮询思路一致)
+        if (!document.querySelector('#pc-player') || !document.querySelector('video')) {
+            // 最多重试 300 次 × 200ms ≈ 1 分钟,超时放弃
+            if (startTries++ >= 300) {
+                return;
+            }
+            return setTimeout(start, 200);
+        }
+        init();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+    } else {
+        // 脚本晚于 DOMContentLoaded 才执行时,直接跑
+        start();
+    }
     function init() {
         var playM3u8 = function (video, url, art) {
             if (Hls.isSupported()) {
@@ -355,7 +370,13 @@
         function load() {
             let video = art.video || document.querySelector('video');
             let videoId = document.getElementById("current_id").value;
-            document.querySelectorAll('div[name=lineData]').forEach(function (node) {
+            // 没有新的线路数据就跳过 load() 自身的增删节点会再次触发 observer,
+            // 不拦下的话会让 switchUrl 被重复调用一次(空白/重复加载)
+            let nodes = document.querySelectorAll('div[name=lineData]');
+            if (nodes.length === 0) {
+                return;
+            }
+            nodes.forEach(function (node) {
                 var link = node.getAttribute('udata');
                 let vbtn = document.createElement('div');
                 vbtn.innerHTML = node.innerHTML;
@@ -394,5 +415,6 @@
             load();
         });
         observer.observe(lineData, { childList: true, subtree: true });
+        load();
     }
 })();
