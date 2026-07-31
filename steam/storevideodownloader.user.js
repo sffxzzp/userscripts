@@ -14,7 +14,7 @@
 (function() {
     var carousel = document.querySelector("div.gamehighlight_desktopcarousel");
     var observer = new MutationObserver(function (recs) {
-        if (carousel.children[0].children.length == 4) {
+        if (carousel.children[0].children[0].children.length == 4) {
             loadBtn();
         }
     });
@@ -179,7 +179,7 @@
         unsafeWindow.ssvdLoaded = true;
         let trailers = JSON.parse(document.querySelector('div.gamehighlight_desktopcarousel').dataset.props).trailers;
         let appid = document.querySelector('div.game').dataset.miniprofileAppid;
-        document.querySelectorAll('div.gamehighlight_desktopcarousel >div > div:last-child > div:first-child > div:has(svg.SVGIcon_Button)').forEach(function (node) {
+        document.querySelectorAll('div.gamehighlight_desktopcarousel > div > div > div:last-child > div:first-child > div:has(svg.SVGIcon_Button)').forEach(function (node) {
             let imgSrc = node.querySelector('img').src;
             let mUrl = '';
             let found264 = false;
