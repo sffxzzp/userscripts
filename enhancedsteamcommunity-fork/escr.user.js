@@ -3,8 +3,8 @@
 // @author          Deparsoul & onlyisu & sffxzzp & DevSplash
 // @namespace       https://greasyfork.org/users/726
 // @description     Add some extra functions to Steam Community
-// @copyright       2015+,  Deparsoul & onlyisu & sffxzzp & DevSplash & GPT-5.5
-// @version         2026.06.08
+// @copyright       2015+,  Deparsoul & onlyisu & sffxzzp & DevSplash & GPT-5.5 & DeepSeek v4 Flash
+// @version         2026.09.07
 // @icon            https://store.steampowered.com/favicon.ico
 // @license         GPL version 3 or any later version
 // @match           http*://steamcommunity.com/*
@@ -71,18 +71,20 @@
             return api.json(url, { method: 'POST', body: new URLSearchParams(data) });
         },
         marketSearch(payload) {
-            return api.json('/market/search', {
-                method: 'POST',
+            return api.json('/market/actions?q=Search&qp=' + encodeURIComponent(JSON.stringify([payload])), {
+                method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json; charset=utf-8',
-                    'X-Valve-Action-Type': 'ZFJAHYDA:SearchMarketListings',
-                    'X-Valve-Request-Type': 'routeAction'
-                },
-                body: JSON.stringify([payload])
-            });
+                    'X-Valve-Request-Type': 'queryAction'
+                }
+            }).then(response => response.data);
         },
         orderBook(appid, hash) {
-            return api.json('/market/orderbook?q=Load&qp=' + encodeURIComponent(JSON.stringify([appid, hash])));
+            return api.json('/market/orderbook?q=Load&qp=' + encodeURIComponent(JSON.stringify([appid, hash])), {
+                method: 'GET',
+                headers: {
+                    'X-Valve-Request-Type': 'queryAction'
+                }
+            }).then(response => response.data);
         },
         cancelBuyOrder(sessionid, orderId) {
             return api.post('/market/cancelbuyorder/', { sessionid: sessionid, buy_orderid: orderId });
@@ -176,42 +178,41 @@
         renderBackgrounds(target, nextSection('span[id$="-backgrounds"]'));
     };
 
+    var renderItems = function (target, container, template) {
+        if (!container) { return; }
+        container.querySelectorAll('div.items-center').forEach(item => {
+            if (!item.textContent.trim()) { return; }
+            target.insertAdjacentHTML('beforeend', template(item));
+        });
+    };
+
     var renderBadges = function (target, badges) {
-        if (!badges) { return; }
-        badges.querySelectorAll('div.items-center').forEach(badge => {
-            if (badge.textContent.trim()) {
-                const img = badge.querySelector('img');
-                const text = badge.querySelector('.text-sm');
-                const level = badge.querySelector('.mt-auto');
-                target.insertAdjacentHTML('beforeend', '<div class="badge_info" style="float:left;width:80px;text-align:center;padding:5px;min-height:150px;"><div class="badge_info_image"><img src="' + (img ? img.src : '') + '"></div><div class="badge_info_description"><div class="badge_info_title">' + (text ? text.textContent : '') + '</div><div>' + (level ? level.innerHTML : '') + '</div></div><div style="clear: left;"></div></div>');
-            }
+        renderItems(target, badges, badge => {
+            const img = badge.querySelector('img');
+            const text = badge.querySelector('.text-sm');
+            const level = badge.querySelector('.mt-auto');
+            return '<div class="badge_info" style="float:left;width:80px;text-align:center;padding:5px;min-height:150px;"><div class="badge_info_image"><img src="' + (img ? img.src : '') + '"></div><div class="badge_info_description"><div class="badge_info_title">' + (text ? text.textContent : '') + '</div><div>' + (level ? level.innerHTML : '') + '</div></div><div style="clear: left;"></div></div>';
         });
     };
 
     var renderEmoticons = function (target, emoticons) {
-        if (!emoticons) { return; }
-        emoticons.querySelectorAll('div.items-center').forEach(item => {
-            if (item.textContent.trim()) {
-                const large = item.querySelector('img[class^=h-]');
-                const small = item.querySelector('img[class^=sm]');
-                const title = item.querySelector('.text-center');
-                const price = item.querySelector('.mt-auto');
-                target.insertAdjacentHTML('beforeend', '<div class="badge_info" style="float:left;width:80px;text-align:center;padding:5px;"><div><img src="' + (large ? large.src : '') + '"></div><div><img src="' + (small ? small.src : '') + '"></div><div><div class="badge_info_title">' + (title ? title.textContent : '') + '</div><div>' + (price ? price.textContent : '') + '</div></div><div style="clear: left;"></div></div>');
-            }
+        renderItems(target, emoticons, item => {
+            const large = item.querySelector('img[class^=h-]');
+            const small = item.querySelector('img[class^=sm]');
+            const title = item.querySelector('.text-center');
+            const price = item.querySelector('.mt-auto');
+            return '<div class="badge_info" style="float:left;width:80px;text-align:center;padding:5px;"><div><img src="' + (large ? large.src : '') + '"></div><div><img src="' + (small ? small.src : '') + '"></div><div><div class="badge_info_title">' + (title ? title.textContent : '') + '</div><div>' + (price ? price.textContent : '') + '</div></div><div style="clear: left;"></div></div>';
         });
     };
 
     var renderBackgrounds = function (target, backgrounds) {
-        if (!backgrounds) { return; }
-        backgrounds.querySelectorAll('div.items-center').forEach(item => {
-            if (item.textContent.trim()) {
-                const link = item.querySelector('.gallery-src');
-                const image = item.querySelector('.gallery-image-anchor > img');
-                const title = item.querySelector('.text-center');
-                const price = item.querySelector('.mt-auto');
-                const imageUrl = image ? image.src.replace('300x180f', '160x100f') : '';
-                target.insertAdjacentHTML('beforeend', '<div class="badge_info" style="float:left;width:160px;text-align:center;padding:5px;"><div><a target="_blank" href="' + (link ? link.href : '') + '"><img src="' + imageUrl + '"></a></div><div><div class="badge_info_title">' + (title ? title.textContent : '') + '</div><div>' + (price ? price.textContent : '') + '</div></div><div style="clear: left;"></div></div>');
-            }
+        renderItems(target, backgrounds, item => {
+            const link = item.querySelector('.gallery-src');
+            const image = item.querySelector('.gallery-image-anchor > img');
+            const title = item.querySelector('.text-center');
+            const price = item.querySelector('.mt-auto');
+            const imageUrl = image ? image.src.replace('300x180f', '160x100f') : '';
+            return '<div class="badge_info" style="float:left;width:160px;text-align:center;padding:5px;"><div><a target="_blank" href="' + (link ? link.href : '') + '"><img src="' + imageUrl + '"></a></div><div><div class="badge_info_title">' + (title ? title.textContent : '') + '</div><div>' + (price ? price.textContent : '') + '</div></div><div style="clear: left;"></div></div>';
         });
     };
 
@@ -238,7 +239,7 @@
 
         var renderLinks = function () {
             const appid = state.appid;
-            const linkMarket = '//steamcommunity.com/market/search?appid=753&category_753_item_class=tag_item_class_2&category_753_Game=tag_app_' + appid;
+            const linkMarket = '//steamcommunity.com/market/search?appid=753&category_item_class=item_class_2&category_Game=app_' + appid;
             const linkInventory = inventoryUrl + "#753_6?filter=tag_filter_753_6_Game_app_" + appid;
             const linkShowcase = 'https://www.steamcardexchange.net/index.php?gamepage-appid-' + appid;
             const inventoryLink = document.querySelector('.gamecards_inventorylink');
@@ -339,9 +340,7 @@
                         if (buyNowLimit && card.graph_sell[j][0] > buyNowLimit) { break; }
                         buyNowPrice = card.graph_sell[j][0];
                         if (!buyNowLimit) { buyNowLimit = buyNowPrice * 2; }
-                        buyNowAmount = card.graph_sell[j][1];
-                        if (j > 0) { buyNowAmount -= card.graph_sell[j - 1][1]; }
-                        buyNowAmount = Math.min(buyNowAmount, buyNowRemain);
+                        buyNowAmount = Math.min(card.graph_sell[j][1], buyNowRemain);
                         buyNowTotal += buyNowPrice * buyNowAmount;
                         buyNowRemain -= buyNowAmount;
                         if (buyNowRemain <= 0) { break; }
@@ -411,11 +410,13 @@
             const data = await api.marketSearch({
                 appid: 753,
                 filters: {
-                    category_753_item_class: ["tag_item_class_5"],
-                    category_753_Game: ["tag_app_" + state.appid]
+                    item_class: ["item_class_5"],
+                    Game: ["app_" + state.appid]
                 },
                 price: { eCurrency: state.walletCurrency },
                 accessoryFilters: {},
+                sort: 1,
+                direction: 1,
                 start: 0
             });
             if (data.results.length == 1) {
@@ -432,12 +433,14 @@
             const data = await api.marketSearch({
                 appid: 753,
                 filters: {
-                    category_753_item_class: ["tag_item_class_2"],
-                    category_753_cardborder: ["tag_cardborder_" + state.foil],
-                    category_753_Game: ["tag_app_" + state.appid]
+                    item_class: ["item_class_2"],
+                    cardborder: ["cardborder_" + state.foil],
+                    Game: ["app_" + state.appid]
                 },
                 price: { eCurrency: state.walletCurrency },
                 accessoryFilters: {},
+                sort: 1,
+                direction: 1,
                 start: 0
             });
             data.results.forEach(element => {
@@ -501,35 +504,31 @@
             loadCardListing(0);
         };
 
-        var buy = function (mode) {
-            cancelBuy(0, mode);
+        var forEachCard = function (i, task, done) {
+            if (i >= state.cards.length) { done && done(); return; }
+            task(state.cards[i], () => setTimeout(() => forEachCard(i + 1, task, done), 500));
         };
 
-        var cancelBuy = function (i, mode) {
-            if (i == state.cards.length) {
-                placeBuy(0, mode);
-                return;
-            }
-            const card = state.cards[i];
-            if (card.order_id !== undefined) {
+        var buy = function (mode) {
+            forEachCard(0, (card, next) => {
+                if (card.order_id === undefined) { next(); return; }
                 api.cancelBuyOrder(state.sessionId, card.order_id).then(data => {
                     card.order = data.success == 1 ? '0' : T.Fail;
                     refreshMarketTable();
-                    setTimeout(() => cancelBuy(i + 1, mode), 500);
+                    next();
                 }).catch(err => {
                     console.error(err);
                     card.order = T.Fail;
                     refreshMarketTable();
-                    setTimeout(() => cancelBuy(i + 1, mode), 500);
+                    next();
                 });
-            } else { cancelBuy(i + 1, mode); }
+            }, () => placeBuy(mode));
         };
 
-        var placeBuy = function (i, mode) {
-            if (i == state.cards.length) { return; }
-            const card = state.cards[i];
-            const demand = demandFor(card);
-            if (card.hash !== undefined && demand > 0) {
+        var placeBuy = function (mode) {
+            forEachCard(0, (card, next) => {
+                const demand = demandFor(card);
+                if (card.hash === undefined || demand <= 0) { next(); return; }
                 const price = card.price[mode];
                 api.createBuyOrder({
                     sessionid: state.sessionId,
@@ -542,32 +541,35 @@
                     card.order = data.success == 1 ? formatPrice(price) + ' x ' + demand : T.Fail;
                     card.order_id = data.buy_orderid;
                     refreshMarketTable();
-                    setTimeout(() => placeBuy(i + 1, mode), 500);
+                    next();
                 }).catch(err => {
                     console.error(err);
                     card.order = T.Fail;
                     refreshMarketTable();
-                    setTimeout(() => placeBuy(i + 1, mode), 500);
+                    next();
                 });
-            } else { placeBuy(i + 1, mode); }
+            });
         };
 
         renderLinks();
-        moveNativeMultibuyButton();
-        const entry = document.querySelector('#batch_buy_card');
-        if (entry) {
-            entry.addEventListener('click', event => {
-                event.preventDefault();
-                event.stopPropagation();
-                if (state.batchState == 0) {
-                    renderBatchPanel(event.currentTarget);
-                    readCardsFromPage();
-                    loadMarket().catch(console.error);
-                }
-            });
-        }
-        document.querySelectorAll('.badge_card_set_text_qty').forEach(element => {element.style.color = 'red'});
-    };
+        moveNativeMultibuyButton();            const entry = document.querySelector('#batch_buy_card');
+            if (entry) {
+                entry.addEventListener('click', event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (state.batchState == 0) {
+                        renderBatchPanel(event.currentTarget);
+                        readCardsFromPage();
+                        loadMarket().catch(console.error);
+                    }
+                });
+            }
+            document.querySelectorAll('.badge_card_set_text_qty').forEach(element => {element.style.color = 'red'});
+
+            gmGet('https://www.steamcardexchange.net/index.php?gamepage-appid-' + state.appid)
+                .then(processBadges)
+                .catch(console.error);
+        };
 
     // ---- 好友活动页：修复缺图 ----
     var friendActivityPage = function () {
@@ -760,14 +762,6 @@
     const route = routes.find(([pattern]) => pattern.test(location.href));
     if (route) { route[1](); }
 
-    // 徽章页额外跨域加载 SteamCardExchange 数据
-    const badgeMatch = location.href.match(/^https?:\/\/steamcommunity\.com\/(id|profiles)\/.+\/gamecards\/([0-9]+)/);
-    if (badgeMatch) {
-        gmGet('https://www.steamcardexchange.net/index.php?gamepage-appid-' + badgeMatch[2])
-            .then(processBadges)
-            .catch(console.error);
-    }
-
     // ---- 语言与文案 ----
     function detectLanguage() {
         const cookieMatch = document.cookie.match(/(?:^|; )Steam_Language=([^;]*)/);
@@ -779,23 +773,11 @@
     function messages(language) {
         const en = {
             Market: "View in Market",
-            MarketAll: "All",
             MarketCard: "Card",
-            MarketBackground: "Background",
-            MarketEmoticon: "Emoticon",
             Inventory: "View in My Inventory",
             Showcase: "Card Showcase",
-            EditBKG: "Edit Background",
-            BKGTips: "Please enter your background image link:\n(resolution:1920x1200)",
-            SearchFriends: "Search Friends",
             WebChat: "Web Chat",
             OneClickBuying: "1-Click buying",
-            ViewMarket: "View in Market",
-            SellItem: "Sell",
-            BKGAlert: "Please set a background in edit profile page first!",
-            ViewBKG: "View Background",
-            ViewBKGSign: "Profile Background",
-            LibrarySearch: "Advanced Search",
             BatchBuyCard: "Batch Buy Cards (Beta, Use at Your Own Risk)",
             BatchBuyBtn: "Batch Buy",
             BatchBuyConfirm: "Batch Buy Confirmation",
@@ -820,23 +802,11 @@
         const localized = {
             schinese: {
                 Market: "在“市场”中查看",
-                MarketAll: "全部",
                 MarketCard: "卡牌",
-                MarketBackground: "背景",
-                MarketEmoticon: "表情",
                 Inventory: "在我的“库存”中查看",
                 Showcase: "卡片展示橱窗",
-                EditBKG: "编辑背景图",
-                BKGTips: "请输入你的背景图链接:\n(分辨率:1920x1200)",
-                SearchFriends: "搜索好友",
                 WebChat: "网页聊天",
                 OneClickBuying: "一键购买",
-                ViewMarket: "在市场中查看",
-                SellItem: "出售",
-                BKGAlert: "请先在编辑个人资料页面设置一个背景！",
-                ViewBKG: "查看背景图",
-                ViewBKGSign: "个人资料背景",
-                LibrarySearch: "高级搜索",
                 BatchBuyCard: "批量购买卡牌（测试中，风险自负）",
                 BatchBuyBtn: "批量下单",
                 BatchBuyConfirm: "批量购买确认",
@@ -859,23 +829,11 @@
             },
             tchinese: {
                 Market: "在“市集”中查看",
-                MarketAll: "全部",
                 MarketCard: "卡片",
-                MarketBackground: "背景",
-                MarketEmoticon: "表情",
                 Inventory: "在我的“物品庫”中查看",
                 Showcase: "卡片展示櫥窗",
-                EditBKG: "編輯背景圖",
-                BKGTips: "請輸入你的背景圖連結:\n(解析度:1920x1200)",
-                SearchFriends: "搜索好友",
                 WebChat: "網頁聊天",
                 OneClickBuying: "一鍵購買",
-                ViewMarket: "在市場中查看",
-                SellItem: "販賣",
-                BKGAlert: "請先在編輯個人檔案頁面設置一個背景！",
-                ViewBKG: "查看背景圖",
-                ViewBKGSign: "個人檔案背景",
-                LibrarySearch: "高级搜索",
                 BatchBuyCard: "批量購買卡牌（測試中，風險自負）",
                 BatchBuyBtn: "批量下單",
                 BatchBuyConfirm: "批量購買確認",
