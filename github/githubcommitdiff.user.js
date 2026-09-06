@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GitHub Commit Diff
 // @namespace    https://github.com/sffxzzp
-// @version      0.02
+// @version      0.03
 // @description  A shortcut to compare old commit with newest commit
 // @author       sffxzzp
 // @match        *://github.com/*/*/commits/*
@@ -32,7 +32,7 @@
                 return;
             }
 
-            let ref = target.querySelector('span > a').href.replace('/commit', '/compare') + "..." + curBranch;
+            let ref = target.querySelector('div.d-flex > a').href.replace('/commit', '/compare') + "..." + curBranch;
             let span = document.createElement('span');
             span.role = 'tooltip';
             span.className = 'Tooltip__TooltipBase-sc-17tf59c-0 hWlpPn tooltipped-sw';
