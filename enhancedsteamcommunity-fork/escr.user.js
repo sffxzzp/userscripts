@@ -54,6 +54,10 @@
         localStorage['esc_' + key] = JSON.stringify(value);
     };
 
+    var esc = function (s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    };
+
     var gmGet = function (url) {
         return new Promise((resolve, reject) => {
             GM_xmlhttpRequest({ method: 'GET', url: url, onload: r => resolve(r.responseText), onerror: reject, ontimeout: reject });
@@ -63,7 +67,9 @@
     // ---- Steam 同源请求 ----
     const api = {
         async json(url, options) {
-            const response = await fetch(url, Object.assign({ credentials: 'include' }, options));
+            const resolved = new URL(url, location.origin);
+            if (resolved.origin !== location.origin) { throw new Error('Blocked cross-origin request: ' + url); }
+            const response = await fetch(resolved.href, Object.assign({ credentials: 'include' }, options));
             if (!response.ok) { throw new Error('HTTP ' + response.status + ': ' + url); }
             return response.json();
         },
@@ -183,7 +189,11 @@
                 const img = badge.querySelector('img');
                 const text = badge.querySelector('.text-sm');
                 const level = badge.querySelector('.mt-auto');
-                target.insertAdjacentHTML('beforeend', '<div class="badge_info" style="float:left;width:80px;text-align:center;padding:5px;min-height:150px;"><div class="badge_info_image"><img src="' + (img ? img.src : '') + '"></div><div class="badge_info_description"><div class="badge_info_title">' + (text ? text.textContent : '') + '</div><div>' + (level ? level.innerHTML : '') + '</div></div><div style="clear: left;"></div></div>');
+                target.insertAdjacentHTML('beforeend', '<div class="badge_info" style="float:left;width:80px;text-align:center;padding:5px;min-height:150px;"><div class="badge_info_image"><img></div><div class="badge_info_description"><div class="badge_info_title"></div><div class="badge_info_level"></div></div><div style="clear: left;"></div></div>');
+                const added188 = target.lastElementChild;
+                added188.querySelector('img').src = img ? img.src : '';
+                added188.querySelector('.badge_info_title').textContent = text ? text.textContent : '';
+                added188.querySelector('.badge_info_level').innerHTML = level ? level.innerHTML : '';
             }
         });
     };
@@ -196,7 +206,12 @@
                 const small = item.querySelector('img[class^=sm]');
                 const title = item.querySelector('.text-center');
                 const price = item.querySelector('.mt-auto');
-                target.insertAdjacentHTML('beforeend', '<div class="badge_info" style="float:left;width:80px;text-align:center;padding:5px;"><div><img src="' + (large ? large.src : '') + '"></div><div><img src="' + (small ? small.src : '') + '"></div><div><div class="badge_info_title">' + (title ? title.textContent : '') + '</div><div>' + (price ? price.textContent : '') + '</div></div><div style="clear: left;"></div></div>');
+                target.insertAdjacentHTML('beforeend', '<div class="badge_info" style="float:left;width:80px;text-align:center;padding:5px;"><div><img class="badge_info_large"></div><div><img class="badge_info_small"></div><div><div class="badge_info_title"></div><div class="badge_info_price"></div></div><div style="clear: left;"></div></div>');
+                const added201 = target.lastElementChild;
+                added201.querySelector('.badge_info_large').src = large ? large.src : '';
+                added201.querySelector('.badge_info_small').src = small ? small.src : '';
+                added201.querySelector('.badge_info_title').textContent = title ? title.textContent : '';
+                added201.querySelector('.badge_info_price').textContent = price ? price.textContent : '';
             }
         });
     };
@@ -210,7 +225,12 @@
                 const title = item.querySelector('.text-center');
                 const price = item.querySelector('.mt-auto');
                 const imageUrl = image ? image.src.replace('300x180f', '160x100f') : '';
-                target.insertAdjacentHTML('beforeend', '<div class="badge_info" style="float:left;width:160px;text-align:center;padding:5px;"><div><a target="_blank" href="' + (link ? link.href : '') + '"><img src="' + imageUrl + '"></a></div><div><div class="badge_info_title">' + (title ? title.textContent : '') + '</div><div>' + (price ? price.textContent : '') + '</div></div><div style="clear: left;"></div></div>');
+                target.insertAdjacentHTML('beforeend', '<div class="badge_info" style="float:left;width:160px;text-align:center;padding:5px;"><div><a target="_blank" class="badge_info_link"><img class="badge_info_img"></a></div><div><div class="badge_info_title"></div><div class="badge_info_price"></div></div><div style="clear: left;"></div></div>');
+                const added215 = target.lastElementChild;
+                added215.querySelector('.badge_info_link').href = link ? link.href : '';
+                added215.querySelector('.badge_info_img').src = imageUrl;
+                added215.querySelector('.badge_info_title').textContent = title ? title.textContent : '';
+                added215.querySelector('.badge_info_price').textContent = price ? price.textContent : '';
             }
         });
     };
@@ -242,7 +262,13 @@
             const linkInventory = inventoryUrl + "#753_6?filter=tag_filter_753_6_Game_app_" + appid;
             const linkShowcase = 'https://www.steamcardexchange.net/index.php?gamepage-appid-' + appid;
             const inventoryLink = document.querySelector('.gamecards_inventorylink');
-            if (inventoryLink) { inventoryLink.innerHTML = '<a class="btn_grey_grey btn_medium" target="_blank" id="batch_buy_card" href=' + linkMarket + '><span>' + T.BatchBuyCard + '</span></a>&nbsp;<a class="btn_grey_grey btn_medium" target="_blank" href=' + linkMarket + '><span>' + T.Market + '</span></a>&nbsp;<a class="btn_grey_grey btn_medium" target="_blank" href=' + linkInventory + '><span>' + T.Inventory + '</span></a>&nbsp;<a class="btn_grey_grey btn_medium" target="_blank" href=' + linkShowcase + '><span>' + T.Showcase + '</span></a>&nbsp;'; }
+            if (inventoryLink) {
+                inventoryLink.innerHTML = '<a class="btn_grey_grey btn_medium" target="_blank" id="batch_buy_card"><span></span></a>&nbsp;<a class="btn_grey_grey btn_medium" target="_blank"><span></span></a>&nbsp;<a class="btn_grey_grey btn_medium" target="_blank"><span></span></a>&nbsp;<a class="btn_grey_grey btn_medium" target="_blank"><span></span></a>&nbsp;';
+                const links = inventoryLink.querySelectorAll('a');
+                const hrefs = [linkMarket, linkMarket, linkInventory, linkShowcase];
+                const labels = [T.BatchBuyCard, T.Market, T.Inventory, T.Showcase];
+                links.forEach((a, i) => { a.href = hrefs[i]; a.querySelector('span').textContent = labels[i]; });
+            }
         };
 
         var moveNativeMultibuyButton = function () {
