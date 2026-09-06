@@ -4,7 +4,7 @@
 // @namespace       https://greasyfork.org/users/726
 // @description     Add some extra functions to Steam Community
 // @copyright       2015+,  Deparsoul & onlyisu & sffxzzp & DevSplash
-// @version         2026.06.08
+// @version         2026.09.07
 // @icon            https://store.steampowered.com/favicon.ico
 // @license         GPL version 3 or any later version
 // @match           http*://steamcommunity.com/*
@@ -346,7 +346,7 @@ function escEnhanceBadges() {
     } else {
         foil = 0;
     }
-    var link_market = '//steamcommunity.com/market/search?appid=753&category_753_item_class=tag_item_class_2&category_753_Game=tag_app_' + appid;
+    var link_market = '//steamcommunity.com/market/search?appid=753&category_item_class=item_class_2&category_Game=app_' + appid;
     var link_inventory = escUrlInventory + "#753_6?filter=tag_filter_753_6_Game_app_" + appid;
     var link_showcase = 'https://www.steamcardexchange.net/index.php?gamepage-appid-' + appid;
     $J('.gamecards_inventorylink:first').html('<a class="btn_grey_grey btn_medium" target="_blank" id="batch_buy_card" href=' + link_market + '><span>' + escT.BatchBuyCard + '</span></a>&nbsp;<a class="btn_grey_grey btn_medium" target="_blank" href=' + link_market + '><span>' + escT.Market + '</span></a>&nbsp;<a class="btn_grey_grey btn_medium" target="_blank" href=' + link_inventory + '><span>' + escT.Inventory + '</span></a>&nbsp;<a class="btn_grey_grey btn_medium" target="_blank" href=' + link_showcase + '><span>' + escT.Showcase + '</span></a>&nbsp;');
@@ -418,10 +418,7 @@ function escEnhanceBadges() {
                     buy_now_price = card.graph_sell[j][0];
                     if (!buy_now_limit)
                         buy_now_limit = buy_now_price * 2;
-                    buy_now_amount = card.graph_sell[j][1];
-                    if (j > 0)
-                        buy_now_amount -= card.graph_sell[j - 1][1];
-                    buy_now_amount = Math.min(buy_now_amount, buy_now_remain);
+                    buy_now_amount = Math.min(card.graph_sell[j][1], buy_now_remain);
                     buy_now_total += buy_now_price * buy_now_amount;
                     buy_now_remain -= buy_now_amount;
                     if (buy_now_remain <= 0)
@@ -504,9 +501,11 @@ function escEnhanceBadges() {
             return;
         }
         // 使用新版 orderbook 接口
-        fetch(`//steamcommunity.com/market/orderbook?q=Load&qp=${JSON.stringify([753, card.hash])}`).then(res => {
+        fetch(`//steamcommunity.com/market/orderbook?q=Load&qp=${JSON.stringify([753, card.hash])}`, {
+            headers: { 'X-Valve-Request-Type': 'queryAction' }
+        }).then(res => {
             if (!res.ok) { throw new Error(`HTTP error! Status: ${res.status}`); }
-            return res.json()
+            return res.json().then(d => d.data);
         }).then(data => {
             // 从 orderbook 接口获取 Currency 代码
             g_walletCurrency = data.data.eCurrency;
@@ -694,17 +693,12 @@ function escEnhanceBadges() {
             // 检查补充包价格
             if (foil == 0) {
                 // 替换为新版请求
-                fetch('//steamcommunity.com/market/search', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json; charset=utf-8',
-                        'X-Valve-Action-Type': 'ZFJAHYDA:SearchMarketListings',
-                        'X-Valve-Request-Type': 'routeAction'
-                    },
-                    body: `[{"appid":753,"filters":{"category_753_item_class":["tag_item_class_5"],"category_753_Game":["tag_app_${appid}"]},"price":{"eCurrency":${g_walletCurrency}},"accessoryFilters":{},"start":0}]`,
+                fetch('//steamcommunity.com/market/actions?q=Search&qp=' + encodeURIComponent(JSON.stringify([{appid: 753, filters: {item_class: ["item_class_5"], Game: ["app_" + appid]}, price: {eCurrency: g_walletCurrency}, accessoryFilters: {}, sort: 1, direction: 1, start: 0}])), {
+                    method: 'GET',
+                    headers: { 'X-Valve-Request-Type': 'queryAction' }
                 }).then(res => {
                     if (!res.ok) { throw new Error(`HTTP error! Status: ${res.status}`); }
-                    return res.json()
+                    return res.json().then(d => d.data);
                 }).then(data => {
                     if (data.results.length == 1) {
                         var l = data.results[0];
@@ -719,17 +713,12 @@ function escEnhanceBadges() {
 
             // 通过市场获取所有卡片列表
             // 替换请求为新版
-            fetch('//steamcommunity.com/market/search', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json; charset=utf-8',
-                    'X-Valve-Action-Type': 'ZFJAHYDA:SearchMarketListings',
-                    'X-Valve-Request-Type': 'routeAction'
-                },
-                body: `[{"appid":753,"filters":{"category_753_item_class":["tag_item_class_2"],"category_753_cardborder":["tag_cardborder_${foil}"],"category_753_Game":["tag_app_${appid}"]},"price":{"eCurrency":${g_walletCurrency}},"accessoryFilters":{},"start":0}]`,
+            fetch('//steamcommunity.com/market/actions?q=Search&qp=' + encodeURIComponent(JSON.stringify([{appid: 753, filters: {item_class: ["item_class_2"], cardborder: ["cardborder_" + foil], Game: ["app_" + appid]}, price: {eCurrency: g_walletCurrency}, accessoryFilters: {}, sort: 1, direction: 1, start: 0}])), {
+                method: 'GET',
+                headers: { 'X-Valve-Request-Type': 'queryAction' }
             }).then(res => {
                 if (!res.ok) { throw new Error(`HTTP error! Status: ${res.status}`); }
-                return res.json()
+                return res.json().then(d => d.data);
             }).then(data => {
                 var list = data.results;
                 list.forEach(element => {
