@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bili Live Code Fetcher
 // @namespace    https://github.com/sffxzzp
-// @version      0.28
+// @version      0.30
 // @description  WTF is that (100)x 5000 fans limit
 // @author       sffxzzp
 // @match        *://link.bilibili.com/*
@@ -99,25 +99,29 @@
             // https://github.com/Rsplwe/bili-live-hime/blob/main/src/view/live-stream-settings.tsx
             let qrImg;
             let qrurl = `https://www.bilibili.com/blackboard/live/face-auth-middle.html?source_event=400&mid=${this.uid}`;
-            switch (res.code) {
-                case 60024:
-                    QRCode.toDataURL(res.data.qr, function (error, url) {
-                        if (!error) {
-                            qrImg = url;
-                        }
-                    })
-                    this.setInfo(`${res.message}<br>${res.data.qr}<br><img src="${qrImg}" />`);
-                    break;
-                case 60043:
-                    QRCode.toDataURL(qrurl, function (error, url) {
-                        if (!error) {
-                            qrImg = url;
-                        }
-                    })
-                    this.setInfo(`${res.message}<br>${qrurl}<br><img src="${qrImg}" />`);
-                    break;
-                case 0:
-                    break;
+            if (res.code > 60000) {
+                switch (res.code) {
+                    case 60024:
+                        QRCode.toDataURL(res.data.qr, function (error, url) {
+                            if (!error) {
+                                qrImg = url;
+                            }
+                        })
+                        this.setInfo(`${res.message}<br>${res.data.qr}<br><img src="${qrImg}" />`);
+                        break;
+                    case 60043:
+                        QRCode.toDataURL(qrurl, function (error, url) {
+                            if (!error) {
+                                qrImg = url;
+                            }
+                        })
+                        this.setInfo(`${res.message}<br>${qrurl}<br><img src="${qrImg}" />`);
+                        break;
+                    default:
+                        this.setInfo(`${res.message}`);
+                        break;
+                }
+                return false;
             }
             // 现在界面自带身份码了
             // let idata = new FormData();
@@ -125,8 +129,8 @@
             // action 2 是刷新并获取身份码
             // idata.append('action', 1);
             // let ires = await fetch('https://api.live.bilibili.com/xlive/open-platform/v1/common/operationOnBroadcastCode', {method: 'POST', body: idata, credentials: 'include'}).then(res => res.json());
-            // this.setInfo(`开播成功！<br>直播地址：${res.data.protocols[0].addr}<br>推流码：${res.data.protocols[0].code}<br>身份码：${ires.data.code}`);
-            this.setInfo(`开播成功！<br>直播地址：${res.data.protocols[0].addr}<br>推流码：${res.data.protocols[0].code}`);
+            // this.setInfo(`开播成功！<br>直播地址：${res.data.rtmp.addr}<br>推流码：${res.data.rtmp.code}<br>身份码：${ires.data.code}`);
+            this.setInfo(`开播成功！<br>直播地址：${res.data.rtmp.addr}<br>推流码：${res.data.rtmp.code}`);
             return true;
         };
         blcf.prototype.stopLive = async function (roomid) {
